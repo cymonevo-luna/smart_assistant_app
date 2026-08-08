@@ -37,7 +37,7 @@ source "$SCRIPT_DIR/lib/flutter-test-env.sh"
 NOTIFICATION_CHANNEL_ID="reminders"
 NOTIFICATION_TITLE="Reminder"
 POLL_INTERVAL_SEC=2
-POLL_TIMEOUT_SEC=60
+POLL_TIMEOUT_SEC=$((DELAY_SECONDS + 45))
 
 log() { printf '>> %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
@@ -70,16 +70,34 @@ resolve_device() {
   resolve_android_sdk || die "Android SDK missing at ${ANDROID_HOME:-unset}"
 
   if [ -n "${DEVICE:-}" ]; then
+    if ! emulator_boot_completed "$DEVICE"; then
+      log "Device $DEVICE is not fully booted; waiting before install..."
+      wait_for_emulator_boot "$DEVICE" 300 || die "Emulator $DEVICE did not finish booting"
+    fi
+    export DEVICE
     return 0
   fi
 
   DEVICE="$(pick_running_emulator_serial || true)"
   if [ -z "$DEVICE" ]; then
+    DEVICE="$(pick_any_emulator_serial || true)"
+    if [ -n "$DEVICE" ]; then
+      log "Found $DEVICE before boot completed; waiting..."
+      wait_for_emulator_boot "$DEVICE" 300 \
+        || die "Emulator $DEVICE did not finish booting"
+      export DEVICE
+      return 0
+    fi
     DEVICE="$("$(adb_bin)" devices 2>/dev/null | awk '/^[[:space:]]*[^[:space:]]+[[:space:]]+device$/ { print $1; exit }')"
   fi
 
   if [ -z "$DEVICE" ]; then
     die "No adb device in 'device' state. Run scripts/ensure-flutter-test-env.sh and scripts/start-shared-emulator.sh first."
+  fi
+
+  if ! emulator_boot_completed "$DEVICE"; then
+    log "Waiting for $DEVICE to finish booting before install..."
+    wait_for_emulator_boot "$DEVICE" 300 || die "Emulator $DEVICE did not finish booting"
   fi
 
   export DEVICE
@@ -101,7 +119,18 @@ ensure_apk() {
 
 install_apk() {
   log "Installing $APK_PATH on $DEVICE"
-  adb_exec install -r "$APK_PATH" || die "adb install failed for $APK_PATH"
+  if adb_exec install -r "$APK_PATH"; then
+    return 0
+  fi
+
+  if ! emulator_boot_completed "$DEVICE"; then
+    log "Install failed; waiting for $DEVICE to finish booting and retrying..."
+    wait_for_emulator_boot "$DEVICE" 300 || die "Emulator $DEVICE did not finish booting"
+    adb_exec install -r "$APK_PATH" || die "adb install failed for $APK_PATH after boot wait"
+    return 0
+  fi
+
+  die "adb install failed for $APK_PATH"
 }
 
 grant_runtime_permissions() {

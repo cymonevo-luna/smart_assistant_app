@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/user_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/models/reminder.dart';
 import 'package:smart_assistant_app/features/reminders/services/local_notifications_client.dart';
 import 'package:smart_assistant_app/features/reminders/services/reminder_notification_permission_client.dart';

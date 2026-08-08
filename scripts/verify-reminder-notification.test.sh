@@ -110,6 +110,10 @@ install)
 shell)
   shift
   case "$*" in
+    "getprop sys.boot_completed")
+      echo "1"
+      exit 0
+      ;;
     "pm grant "*)
       exit 0
       ;;

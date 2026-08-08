@@ -34,11 +34,13 @@ void main() {
         'data': {
           'wake_word': 'Friday',
           'active_listening_enabled': true,
+          'location_reminder_threshold_meters': 150,
         },
       }),
       data: {
         'wake_word': 'Friday',
         'active_listening_enabled': true,
+        'location_reminder_threshold_meters': 150,
       },
     );
 
@@ -46,11 +48,13 @@ void main() {
     await repo.updateSettings(
       wakeWord: 'Friday',
       activeListeningEnabled: true,
+      locationReminderThresholdMeters: 150,
     );
 
     final cached = repo.readCachedOrDefaults();
     expect(cached.wakeWord, 'Friday');
     expect(cached.activeListeningEnabled, isTrue);
+    expect(cached.locationReminderThresholdMeters, 150);
 
     final relaunched = AssistantSettingsRepository(
       locator<ApiClient>(),
@@ -59,6 +63,59 @@ void main() {
     final afterRelaunch = relaunched.readCachedOrDefaults();
     expect(afterRelaunch.wakeWord, 'Friday');
     expect(afterRelaunch.activeListeningEnabled, isTrue);
+    expect(afterRelaunch.locationReminderThresholdMeters, 150);
+  });
+
+  test('repository caches location reminder threshold', () async {
+    adapter.onPut(
+      '/api/v1/assistant/settings',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'wake_word': 'Jarvis',
+          'active_listening_enabled': false,
+          'location_reminder_threshold_meters': 150,
+        },
+      }),
+      data: {
+        'wake_word': 'Jarvis',
+        'active_listening_enabled': false,
+        'location_reminder_threshold_meters': 150,
+      },
+    );
+
+    final repo = locator<AssistantSettingsRepository>();
+    await repo.updateSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+      locationReminderThresholdMeters: 150,
+    );
+
+    final relaunched = AssistantSettingsRepository(
+      locator<ApiClient>(),
+      locator<PreferencesService>(),
+    );
+    expect(
+      relaunched.readCachedOrDefaults().locationReminderThresholdMeters,
+      150,
+    );
+  });
+
+  test('fetchSettings defaults missing location threshold to 100', () async {
+    adapter.onGet(
+      '/api/v1/assistant/settings',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'wake_word': 'Jarvis',
+          'active_listening_enabled': false,
+        },
+      }),
+    );
+
+    final repo = locator<AssistantSettingsRepository>();
+    final settings = await repo.fetchSettings();
+    expect(settings.locationReminderThresholdMeters, 100);
   });
 
   test('readCachedOrDefaults uses Jarvis defaults when cache is empty', () {
@@ -66,5 +123,9 @@ void main() {
     final defaults = repo.readCachedOrDefaults();
     expect(defaults.wakeWord, AssistantSettingsRepository.defaultWakeWord);
     expect(defaults.activeListeningEnabled, isFalse);
+    expect(
+      defaults.locationReminderThresholdMeters,
+      AssistantSettingsRepository.defaultLocationReminderThresholdMeters,
+    );
   });
 }

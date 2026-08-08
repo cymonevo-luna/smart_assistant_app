@@ -96,6 +96,11 @@ void main() {
       ..registerSingleton<AssistantRepository>(
         AssistantRepository(mocked.client),
       );
+    registerReminderTestServices(
+      locator,
+      prefs: prefs,
+      apiClient: mocked.client,
+    );
 
     adapter.onPost(
       '/api/v1/assistant/sessions',

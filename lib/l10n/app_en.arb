@@ -89,6 +89,15 @@
     }
   },
   "assistantSettingsSaveFailed": "Could not save settings. Showing cached values.",
+  "locationReminderDistance": "Location reminder distance",
+  "locationReminderDistanceMeters": "{meters} m",
+  "@locationReminderDistanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
   "plugins": "Plugins",
   "managePlugins": "Manage Plugins",
   "pluginsInstalledTab": "Installed",

@@ -224,6 +224,14 @@ class AppLocalizationsId extends AppLocalizations {
       'Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.';
 
   @override
+  String get locationReminderDistance => 'Jarak pengingat lokasi';
+
+  @override
+  String locationReminderDistanceMeters(int meters) {
+    return '$meters m';
+  }
+
+  @override
   String get plugins => 'Plugin';
 
   @override

@@ -96,6 +96,35 @@ list_running_emulator_serials() {
   "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+device$/ { print $1 }'
 }
 
+pick_any_emulator_serial() {
+  "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+/ { print $1; exit }'
+}
+
+wait_for_emulator_serial() {
+  local timeout="${1:-300}"
+  local elapsed=0
+  local serial=""
+  while [ "$elapsed" -lt "$timeout" ]; do
+    "$(adb_bin)" start-server >/dev/null 2>&1 || true
+    serial="$(pick_any_emulator_serial || true)"
+    if [ -n "$serial" ]; then
+      if emulator_boot_completed "$serial"; then
+        echo "$serial"
+        return 0
+      fi
+      _flutter_test_env_log "Found $serial but boot is incomplete; waiting..."
+      if wait_for_emulator_boot "$serial" "$((timeout - elapsed))"; then
+        echo "$serial"
+        return 0
+      fi
+      return 1
+    fi
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+  return 1
+}
+
 pick_running_emulator_serial() {
   list_running_emulator_serials | head -n1
 }

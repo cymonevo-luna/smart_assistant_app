@@ -91,18 +91,11 @@ emu_pid=$!
 record_shared_emulator "$emu_pid" ""
 
 serial=""
-for _ in $(seq 1 60); do
-  serial="$(pick_running_emulator_serial || true)"
-  [ -n "$serial" ] && break
-  sleep 2
-done
-
-if [ -z "$serial" ]; then
-  _flutter_test_env_log "ERROR: Emulator process started (pid $emu_pid) but no adb serial appeared."
+if ! serial="$(wait_for_emulator_serial 300)"; then
+  _flutter_test_env_log "ERROR: Emulator process started (pid $emu_pid) but no adb serial became ready."
   exit 1
 fi
 
-wait_for_emulator_boot "$serial" 300
 record_shared_emulator "$emu_pid" "$serial"
 echo "$serial"
 _flutter_test_env_log "Shared emulator ready: $serial"

@@ -113,6 +113,14 @@ void main() {
   });
 
   test('installed plugins refresh fetches again', () async {
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
     var fetchCount = 0;
     adapter.onGet(
       PluginRepository.installedPath,
@@ -132,6 +140,14 @@ void main() {
   });
 
   test('deep link bootstrap refreshes installed plugins', () async {
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
     var installedFetchCount = 0;
     adapter.onGet(
       PluginRepository.installedPath,

@@ -22,10 +22,17 @@ class _AssistantSettingsSectionState
   String? _wakeWordError;
   Timer? _debounce;
   String? _lastSyncedWakeWord;
+  Timer? _thresholdDebounce;
+  int? _pendingThreshold;
+
+  static const _minThresholdMeters = 10;
+  static const _maxThresholdMeters = 500;
+  static const _thresholdStepMeters = 10;
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _thresholdDebounce?.cancel();
     _wakeWordController?.dispose();
     super.dispose();
   }
@@ -76,6 +83,35 @@ class _AssistantSettingsSectionState
     }
   }
 
+  int _displayedThresholdMeters(int settingsValue) =>
+      _pendingThreshold ?? settingsValue;
+
+  void _onThresholdChanged(double value) {
+    final meters = value.round();
+    setState(() => _pendingThreshold = meters);
+    _thresholdDebounce?.cancel();
+    _thresholdDebounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _saveThreshold(meters),
+    );
+  }
+
+  Future<void> _saveThreshold(int meters) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await ref
+        .read(assistantSettingsProvider.notifier)
+        .setLocationReminderThreshold(meters);
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _pendingThreshold = null);
+      return;
+    }
+    setState(() => _pendingThreshold = null);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.assistantSettingsSaveFailed)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -96,6 +132,8 @@ class _AssistantSettingsSectionState
       ),
       data: (settings) {
         _syncController(settings.wakeWord);
+        final thresholdMeters =
+            _displayedThresholdMeters(settings.locationReminderThresholdMeters);
         return AppCard(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
           child: Column(
@@ -159,6 +197,53 @@ class _AssistantSettingsSectionState
                   key: const ValueKey('assistant_active_listening'),
                   value: settings.activeListeningEnabled,
                   onChanged: _onActiveListeningChanged,
+                ),
+              ),
+              const Divider(
+                indent: AppSpacing.md,
+                endIndent: AppSpacing.md,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.place_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            l10n.locationReminderDistance,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        Text(
+                          l10n.locationReminderDistanceMeters(thresholdMeters),
+                          key: const ValueKey('location_reminder_threshold_value'),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      key: const ValueKey('location_reminder_threshold_slider'),
+                      value: thresholdMeters.toDouble(),
+                      min: _minThresholdMeters.toDouble(),
+                      max: _maxThresholdMeters.toDouble(),
+                      divisions: (_maxThresholdMeters - _minThresholdMeters) ~/
+                          _thresholdStepMeters,
+                      label: l10n.locationReminderDistanceMeters(thresholdMeters),
+                      onChanged: _onThresholdChanged,
+                    ),
+                  ],
                 ),
               ),
             ],

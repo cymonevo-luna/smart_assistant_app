@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AssistantSettings {
 
-@JsonKey(name: 'wake_word') String get wakeWord;@JsonKey(name: 'active_listening_enabled') bool get activeListeningEnabled;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
+@JsonKey(name: 'wake_word') String get wakeWord;@JsonKey(name: 'active_listening_enabled') bool get activeListeningEnabled;@JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100) int get locationReminderThresholdMeters;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
 /// Create a copy of AssistantSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AssistantSettingsCopyWith<AssistantSettings> get copyWith => _$AssistantSetting
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssistantSettings&&(identical(other.wakeWord, wakeWord) || other.wakeWord == wakeWord)&&(identical(other.activeListeningEnabled, activeListeningEnabled) || other.activeListeningEnabled == activeListeningEnabled)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssistantSettings&&(identical(other.wakeWord, wakeWord) || other.wakeWord == wakeWord)&&(identical(other.activeListeningEnabled, activeListeningEnabled) || other.activeListeningEnabled == activeListeningEnabled)&&(identical(other.locationReminderThresholdMeters, locationReminderThresholdMeters) || other.locationReminderThresholdMeters == locationReminderThresholdMeters)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,wakeWord,activeListeningEnabled,updatedAt);
+int get hashCode => Object.hash(runtimeType,wakeWord,activeListeningEnabled,locationReminderThresholdMeters,updatedAt);
 
 @override
 String toString() {
-  return 'AssistantSettings(wakeWord: $wakeWord, activeListeningEnabled: $activeListeningEnabled, updatedAt: $updatedAt)';
+  return 'AssistantSettings(wakeWord: $wakeWord, activeListeningEnabled: $activeListeningEnabled, locationReminderThresholdMeters: $locationReminderThresholdMeters, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AssistantSettingsCopyWith<$Res>  {
   factory $AssistantSettingsCopyWith(AssistantSettings value, $Res Function(AssistantSettings) _then) = _$AssistantSettingsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'wake_word') String wakeWord,@JsonKey(name: 'active_listening_enabled') bool activeListeningEnabled,@JsonKey(name: 'updated_at') DateTime? updatedAt
+@JsonKey(name: 'wake_word') String wakeWord,@JsonKey(name: 'active_listening_enabled') bool activeListeningEnabled,@JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100) int locationReminderThresholdMeters,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -65,11 +65,12 @@ class _$AssistantSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AssistantSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? wakeWord = null,Object? activeListeningEnabled = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? wakeWord = null,Object? activeListeningEnabled = null,Object? locationReminderThresholdMeters = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 wakeWord: null == wakeWord ? _self.wakeWord : wakeWord // ignore: cast_nullable_to_non_nullable
 as String,activeListeningEnabled: null == activeListeningEnabled ? _self.activeListeningEnabled : activeListeningEnabled // ignore: cast_nullable_to_non_nullable
-as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as bool,locationReminderThresholdMeters: null == locationReminderThresholdMeters ? _self.locationReminderThresholdMeters : locationReminderThresholdMeters // ignore: cast_nullable_to_non_nullable
+as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100)  int locationReminderThresholdMeters, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssistantSettings() when $default != null:
-return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);case _:
+return $default(_that.wakeWord,_that.activeListeningEnabled,_that.locationReminderThresholdMeters,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100)  int locationReminderThresholdMeters, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _AssistantSettings():
-return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);case _:
+return $default(_that.wakeWord,_that.activeListeningEnabled,_that.locationReminderThresholdMeters,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'wake_word')  String wakeWord, @JsonKey(name: 'active_listening_enabled')  bool activeListeningEnabled, @JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100)  int locationReminderThresholdMeters, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AssistantSettings() when $default != null:
-return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);case _:
+return $default(_that.wakeWord,_that.activeListeningEnabled,_that.locationReminderThresholdMeters,_that.updatedAt);case _:
   return null;
 
 }
@@ -211,11 +212,12 @@ return $default(_that.wakeWord,_that.activeListeningEnabled,_that.updatedAt);cas
 @JsonSerializable()
 
 class _AssistantSettings implements AssistantSettings {
-  const _AssistantSettings({@JsonKey(name: 'wake_word') required this.wakeWord, @JsonKey(name: 'active_listening_enabled') required this.activeListeningEnabled, @JsonKey(name: 'updated_at') this.updatedAt});
+  const _AssistantSettings({@JsonKey(name: 'wake_word') required this.wakeWord, @JsonKey(name: 'active_listening_enabled') required this.activeListeningEnabled, @JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100) this.locationReminderThresholdMeters = 100, @JsonKey(name: 'updated_at') this.updatedAt});
   factory _AssistantSettings.fromJson(Map<String, dynamic> json) => _$AssistantSettingsFromJson(json);
 
 @override@JsonKey(name: 'wake_word') final  String wakeWord;
 @override@JsonKey(name: 'active_listening_enabled') final  bool activeListeningEnabled;
+@override@JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100) final  int locationReminderThresholdMeters;
 @override@JsonKey(name: 'updated_at') final  DateTime? updatedAt;
 
 /// Create a copy of AssistantSettings
@@ -231,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssistantSettings&&(identical(other.wakeWord, wakeWord) || other.wakeWord == wakeWord)&&(identical(other.activeListeningEnabled, activeListeningEnabled) || other.activeListeningEnabled == activeListeningEnabled)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssistantSettings&&(identical(other.wakeWord, wakeWord) || other.wakeWord == wakeWord)&&(identical(other.activeListeningEnabled, activeListeningEnabled) || other.activeListeningEnabled == activeListeningEnabled)&&(identical(other.locationReminderThresholdMeters, locationReminderThresholdMeters) || other.locationReminderThresholdMeters == locationReminderThresholdMeters)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,wakeWord,activeListeningEnabled,updatedAt);
+int get hashCode => Object.hash(runtimeType,wakeWord,activeListeningEnabled,locationReminderThresholdMeters,updatedAt);
 
 @override
 String toString() {
-  return 'AssistantSettings(wakeWord: $wakeWord, activeListeningEnabled: $activeListeningEnabled, updatedAt: $updatedAt)';
+  return 'AssistantSettings(wakeWord: $wakeWord, activeListeningEnabled: $activeListeningEnabled, locationReminderThresholdMeters: $locationReminderThresholdMeters, updatedAt: $updatedAt)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$AssistantSettingsCopyWith<$Res> implements $AssistantSett
   factory _$AssistantSettingsCopyWith(_AssistantSettings value, $Res Function(_AssistantSettings) _then) = __$AssistantSettingsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'wake_word') String wakeWord,@JsonKey(name: 'active_listening_enabled') bool activeListeningEnabled,@JsonKey(name: 'updated_at') DateTime? updatedAt
+@JsonKey(name: 'wake_word') String wakeWord,@JsonKey(name: 'active_listening_enabled') bool activeListeningEnabled,@JsonKey(name: 'location_reminder_threshold_meters', defaultValue: 100) int locationReminderThresholdMeters,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -268,11 +270,12 @@ class __$AssistantSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AssistantSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? wakeWord = null,Object? activeListeningEnabled = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? wakeWord = null,Object? activeListeningEnabled = null,Object? locationReminderThresholdMeters = null,Object? updatedAt = freezed,}) {
   return _then(_AssistantSettings(
 wakeWord: null == wakeWord ? _self.wakeWord : wakeWord // ignore: cast_nullable_to_non_nullable
 as String,activeListeningEnabled: null == activeListeningEnabled ? _self.activeListeningEnabled : activeListeningEnabled // ignore: cast_nullable_to_non_nullable
-as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as bool,locationReminderThresholdMeters: null == locationReminderThresholdMeters ? _self.locationReminderThresholdMeters : locationReminderThresholdMeters // ignore: cast_nullable_to_non_nullable
+as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
