@@ -5,32 +5,25 @@ import '../../features/assistant/pages/assistant_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
-import '../../features/placeholder/coming_soon_page.dart';
 import '../../features/plugins/pages/my_plugins_page.dart';
 import '../../features/plugins/pages/plugin_setup_page.dart';
 import '../../features/plugins/pages/plugin_store_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
-import '../../features/showcase/showcase_page.dart';
-import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 /// Centralized route names/paths. Reference these instead of raw strings:
-/// `context.goNamed(AppRoute.home.name)`.
+/// `context.goNamed(AppRoute.assistant.name)`.
 enum AppRoute {
   splash('/'),
   login('/login'),
   register('/register'),
-  home('/home'),
-  tasks('/tasks'),
-  calendar('/calendar'),
   assistant('/assistant'),
   profile('/profile'),
   settings('/settings'),
   pluginStore('/plugins/store'),
   myPlugins('/plugins'),
-  pluginSetup('/plugins/:id/setup'),
-  details('/details');
+  pluginSetup('/plugins/:id/setup');
 
   const AppRoute(this.path);
   final String path;
@@ -40,8 +33,8 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// The app's router. Bottom-navigation tabs live inside a
 /// [StatefulShellRoute.indexedStack] so each tab is instantiated only once and
-/// kept alive; everything else (auth, settings, details) sits on the root
-/// navigator and is presented over the shell.
+/// kept alive; everything else (auth, settings) sits on the root navigator and
+/// is presented over the shell.
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoute.splash.path,
@@ -70,39 +63,6 @@ final GoRouter appRouter = GoRouter(
         children: children,
       ),
       branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: AppRoute.home.path,
-              name: AppRoute.home.name,
-              builder: (context, state) => const ShowcasePage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: AppRoute.tasks.path,
-              name: AppRoute.tasks.name,
-              builder: (context, state) => ComingSoonPage(
-                title: AppLocalizations.of(context).tasks,
-                icon: Icons.check_box_outlined,
-              ),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: AppRoute.calendar.path,
-              name: AppRoute.calendar.name,
-              builder: (context, state) => ComingSoonPage(
-                title: AppLocalizations.of(context).calendar,
-                icon: Icons.calendar_today_outlined,
-              ),
-            ),
-          ],
-        ),
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -149,27 +109,8 @@ final GoRouter appRouter = GoRouter(
         pluginId: state.pathParameters['id']!,
       ),
     ),
-    GoRoute(
-      path: AppRoute.details.path,
-      name: AppRoute.details.name,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const _DetailsPage(),
-    ),
   ],
   errorBuilder: (context, state) => Scaffold(
     body: Center(child: Text('Route not found: ${state.uri}')),
   ),
 );
-
-/// Placeholder destination to demonstrate navigation. Replace with real pages.
-class _DetailsPage extends StatelessWidget {
-  const _DetailsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Details')),
-      body: const Center(child: Text('Details page')),
-    );
-  }
-}
