@@ -12,6 +12,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/assistant/active_listening_controller.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
+import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'l10n/app_localizations.dart';
@@ -58,6 +59,11 @@ class _AppState extends ConsumerState<App> {
           GlobalCupertinoLocalizations.delegate,
         ],
         routerConfig: appRouter,
+        builder: (context, child) {
+          return AssistantListeningOverlayHost(
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
       ),
     );
   }

@@ -152,6 +152,24 @@ abstract class AppLocalizations {
   /// **'Speaking...'**
   String get assistantSpeaking;
 
+  /// No description provided for @assistantListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get assistantListening;
+
+  /// No description provided for @assistantTapToSpeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to speak'**
+  String get assistantTapToSpeak;
+
+  /// No description provided for @assistantWidgetSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use the assistant widget'**
+  String get assistantWidgetSignInRequired;
+
   /// No description provided for @profile.
   ///
   /// In en, this message translates to:
