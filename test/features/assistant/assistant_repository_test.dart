@@ -6,6 +6,7 @@ import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/assistant/data/assistant_repository.dart';
+import 'package:smart_assistant_app/features/assistant/models/assistant_session.dart';
 
 import '../../helpers/auth_harness.dart';
 
@@ -32,8 +33,7 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          'id': 'sess-1',
-          'session_status': 'active',
+          'session_id': 'sess-1',
         },
       }),
     );
@@ -41,6 +41,22 @@ void main() {
     final session = await locator<AssistantRepository>().createSession();
     expect(session.id, 'sess-1');
     expect(session.sessionStatus.name, 'active');
+  });
+
+  test('createSession defaults sessionStatus when absent from API response', () async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'session_id': 'sess-live',
+        },
+      }),
+    );
+
+    final session = await locator<AssistantRepository>().createSession();
+    expect(session.id, 'sess-live');
+    expect(session.sessionStatus, AssistantSessionStatus.active);
   });
 
   test('sendMessage posts text and source to session messages', () async {

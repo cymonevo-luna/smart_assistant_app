@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AssistantSession {
 
- String get id;@JsonKey(name: 'session_status') AssistantSessionStatus get sessionStatus;
+@JsonKey(name: 'session_id') String get id;@JsonKey(name: 'session_status') AssistantSessionStatus get sessionStatus;
 /// Create a copy of AssistantSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AssistantSessionCopyWith<$Res>  {
   factory $AssistantSessionCopyWith(AssistantSession value, $Res Function(AssistantSession) _then) = _$AssistantSessionCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'session_status') AssistantSessionStatus sessionStatus
+@JsonKey(name: 'session_id') String id,@JsonKey(name: 'session_status') AssistantSessionStatus sessionStatus
 });
 
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssistantSession() when $default != null:
 return $default(_that.id,_that.sessionStatus);case _:
@@ -175,7 +175,7 @@ return $default(_that.id,_that.sessionStatus);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)  $default,) {final _that = this;
 switch (_that) {
 case _AssistantSession():
 return $default(_that.id,_that.sessionStatus);case _:
@@ -195,7 +195,7 @@ return $default(_that.id,_that.sessionStatus);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'session_id')  String id, @JsonKey(name: 'session_status')  AssistantSessionStatus sessionStatus)?  $default,) {final _that = this;
 switch (_that) {
 case _AssistantSession() when $default != null:
 return $default(_that.id,_that.sessionStatus);case _:
@@ -210,10 +210,10 @@ return $default(_that.id,_that.sessionStatus);case _:
 @JsonSerializable()
 
 class _AssistantSession implements AssistantSession {
-  const _AssistantSession({required this.id, @JsonKey(name: 'session_status') required this.sessionStatus});
+  const _AssistantSession({@JsonKey(name: 'session_id') required this.id, @JsonKey(name: 'session_status') this.sessionStatus = AssistantSessionStatus.active});
   factory _AssistantSession.fromJson(Map<String, dynamic> json) => _$AssistantSessionFromJson(json);
 
-@override final  String id;
+@override@JsonKey(name: 'session_id') final  String id;
 @override@JsonKey(name: 'session_status') final  AssistantSessionStatus sessionStatus;
 
 /// Create a copy of AssistantSession
@@ -249,7 +249,7 @@ abstract mixin class _$AssistantSessionCopyWith<$Res> implements $AssistantSessi
   factory _$AssistantSessionCopyWith(_AssistantSession value, $Res Function(_AssistantSession) _then) = __$AssistantSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'session_status') AssistantSessionStatus sessionStatus
+@JsonKey(name: 'session_id') String id,@JsonKey(name: 'session_status') AssistantSessionStatus sessionStatus
 });
 
 
