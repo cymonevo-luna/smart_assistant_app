@@ -1,0 +1,21 @@
+# Build a release APK on pushes to master (flutter_template convention).
+name: Build APK
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter pub add sentry_flutter:^9.10.0 2>/dev/null || flutter pub upgrade sentry_flutter
+      - run: flutter pub upgrade package_info_plus 2>/dev/null || true
+      - run: flutter pub get
+      - run: flutter build apk --release
