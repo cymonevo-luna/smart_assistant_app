@@ -1,0 +1,37 @@
+---
+description: All pages/components must follow the App Template mockup design
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# UI Mockup Conventions
+
+When creating or editing any page, screen, or widget, follow the App Template
+mockup. Reference: `.cursor/rules/assets/mockup.png`.
+
+## Design Language
+- Minimal, clean, modern. Generous white space, light neutral backgrounds.
+- Card-based layouts: white cards, large rounded corners (~16px), soft subtle
+  shadows. No hard borders.
+- Rounded inputs and buttons. Primary buttons are full-width, filled, rounded.
+- Use Google Fonts for typography; clear hierarchy (bold titles, muted subtitles).
+
+## Theming
+- Drive all colors from a single theme via `ThemeData` / `ColorScheme`. Never
+  hardcode colors in widgets.
+- Support an easily swappable accent color. Reference palette: blue (default),
+  red, orange/yellow, green, purple, teal.
+- Status/stat icons use colored circular backgrounds matching the accent set.
+
+## Structure & Navigation
+- Bottom navigation with 5 sections: Home, Tasks, Calendar, Messages, Profile.
+- A floating action button (`+`) for primary creation actions.
+- Standard screens to mirror: Splash, Login/Register (email + Google/Apple),
+  Home (greeting banner, Overview stat cards, Recent Activity list), Profile
+  (avatar, stats row, action list), Settings (grouped sections with chevrons).
+
+## Components
+- Build small, reusable, responsive widgets (organized layers). Extract cards,
+  list items, and stat tiles into shared widgets instead of duplicating.
+- List rows: leading icon, title, optional trailing value/chevron.
+- Keep spacing and padding consistent across screens.

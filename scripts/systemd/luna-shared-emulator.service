@@ -1,0 +1,15 @@
+[Unit]
+Description=Luna shared Android emulator for Flutter agent testing
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=ANDROID_HOME=%h/Android/Sdk
+Environment=ANDROID_SDK_ROOT=%h/Android/Sdk
+Environment=SHARED_AVD=Luna_Test_Lite
+ExecStart=%h/Codes/cymonevo/luna/flutter_template/scripts/start-shared-emulator.sh
+ExecStop=%h/Codes/cymonevo/luna/flutter_template/scripts/stop-shared-emulator.sh
+
+[Install]
+WantedBy=default.target
