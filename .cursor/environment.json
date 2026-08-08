@@ -1,0 +1,29 @@
+{
+  "name": "smart_assistant_app",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "repositoryDependencies": [
+    "github.com/cymonevo-luna/smart_assistant_api"
+  ],
+  "install": "bash .cursor/resolve-api-dir.sh ensure_api_repo >/dev/null\nflutter pub get\ndart run build_runner build --delete-conflicting-outputs",
+  "start": "if [ -e /dev/kvm ]; then sudo chgrp kvm /dev/kvm 2>/dev/null || true; sudo chmod g+rw /dev/kvm 2>/dev/null || true; fi\nsudo service docker start",
+  "terminals": [
+    {
+      "name": "emulator",
+      "command": ".cursor/start-emulator.sh",
+      "description": "Shared Luna_Test_Lite Android emulator (reuses running instance; KVM preferred, software rendering fallback without KVM)."
+    },
+    {
+      "name": "api",
+      "command": ".cursor/start-api.sh",
+      "description": "smart_assistant_api stack on http://localhost:8080/healthz (postgres, redis, api via docker compose)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "api",
+      "port": 8080
+    }
+  ]
+}
