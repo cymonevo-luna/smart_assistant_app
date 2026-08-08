@@ -476,6 +476,12 @@ abstract class AppLocalizations {
   /// **'Wake word cannot be empty'**
   String get wakeWordRequired;
 
+  /// No description provided for @listeningForWakeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening for {wakeWord}…'**
+  String listeningForWakeWord(String wakeWord);
+
   /// No description provided for @assistantSettingsSaveFailed.
   ///
   /// In en, this message translates to:

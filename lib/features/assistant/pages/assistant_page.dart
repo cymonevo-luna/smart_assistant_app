@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../assistant_controller.dart';
+import '../active_listening_controller.dart';
 import '../models/assistant_reply.dart';
 
 class AssistantPage extends ConsumerStatefulWidget {
@@ -75,6 +76,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(assistantControllerProvider);
+    final activeListening = ref.watch(activeListeningControllerProvider);
     final colors = context.colors;
 
     return Scaffold(
@@ -83,6 +85,34 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
       ),
       body: Column(
         children: [
+          if (activeListening.isMonitoring)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                0,
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: Chip(
+                  key: const ValueKey('assistant_active_listening_chip'),
+                  avatar: Icon(
+                    Icons.hearing,
+                    size: 18,
+                    color: colors.primary,
+                  ),
+                  label: Text(
+                    l10n.listeningForWakeWord(activeListening.wakeWord),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.primary,
+                        ),
+                  ),
+                  backgroundColor: colors.primary.withValues(alpha: 0.1),
+                  side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
+                ),
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,

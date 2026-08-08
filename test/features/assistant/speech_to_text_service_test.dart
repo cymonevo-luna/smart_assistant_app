@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import 'package:smart_assistant_app/features/assistant/services/speech_to_text_service.dart';
 
@@ -30,6 +31,7 @@ class FakeSpeechRecognizer implements SpeechRecognizer {
   @override
   Future<void> listen({
     required void Function(SpeechRecognitionResult result) onResult,
+    ListenMode listenMode = ListenMode.confirmation,
   }) async {
     this.onResult = onResult;
     listening = true;

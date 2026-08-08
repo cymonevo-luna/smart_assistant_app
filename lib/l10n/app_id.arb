@@ -64,6 +64,7 @@
   "activeListening": "Dengarkan aktif",
   "activeListeningSubtitle": "Menjaga mikrofon aktif untuk mendeteksi kata bangun. Dapat meningkatkan penggunaan battery.",
   "wakeWordRequired": "Kata bangun tidak boleh kosong",
+  "listeningForWakeWord": "Mendengarkan {wakeWord}…",
   "assistantSettingsSaveFailed": "Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.",
   "plugins": "Plugin",
   "pluginStore": "Toko Plugin",

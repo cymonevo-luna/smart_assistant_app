@@ -201,6 +201,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get wakeWordRequired => 'Kata bangun tidak boleh kosong';
 
   @override
+  String listeningForWakeWord(String wakeWord) {
+    return 'Mendengarkan $wakeWord…';
+  }
+
+  @override
   String get assistantSettingsSaveFailed =>
       'Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.';
 

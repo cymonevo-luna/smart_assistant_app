@@ -38,6 +38,11 @@ enum AppRoute {
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Whether [appRouter] is attached to a live [Navigator] (false in widget tests
+/// that host pages outside [MaterialApp.router]).
+bool get isAppRouterMounted =>
+    _rootNavigatorKey.currentState?.mounted ?? false;
+
 /// The app's router. Bottom-navigation tabs live inside a
 /// [StatefulShellRoute.indexedStack] so each tab is instantiated only once and
 /// kept alive; everything else (auth, settings, details) sits on the root

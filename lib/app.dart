@@ -9,6 +9,7 @@ import 'core/localization/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'features/assistant/active_listening_controller.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
@@ -36,6 +37,7 @@ class _AppState extends ConsumerState<App> {
   @override
   Widget build(BuildContext context) {
     ref.watch(speechToTextInitializationProvider);
+    ref.watch(activeListeningControllerProvider);
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 

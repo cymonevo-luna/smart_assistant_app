@@ -1,4 +1,4 @@
-package com.example.flutter_template
+package com.cymonevo.smart_assistant
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -76,6 +76,14 @@
   "activeListening": "Active listening",
   "activeListeningSubtitle": "Keeps the microphone active to detect your wake word. May increase battery usage.",
   "wakeWordRequired": "Wake word cannot be empty",
+  "listeningForWakeWord": "Listening for {wakeWord}…",
+  "@listeningForWakeWord": {
+    "placeholders": {
+      "wakeWord": {
+        "type": "String"
+      }
+    }
+  },
   "assistantSettingsSaveFailed": "Could not save settings. Showing cached values.",
   "plugins": "Plugins",
   "pluginStore": "Plugin Store",
