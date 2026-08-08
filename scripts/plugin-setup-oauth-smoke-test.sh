@@ -7,7 +7,9 @@
 # 2. Always runs the Flutter integration smoke test that mirrors the in-app flow.
 #
 # Usage (from repo root):
-#   cp .env.staging.example .env   # or .env.emulator.example for local docker QA
+#   cp .env.qa-local.example .env   # host-side local QA API (localhost:8080)
+#   cp .env.staging.example .env    # staging
+#   cp .env.emulator.example .env   # Android emulator against local docker QA
 #   scripts/plugin-setup-oauth-smoke-test.sh
 set -euo pipefail
 
@@ -43,21 +45,26 @@ api_smoke() {
   local email="smoke-$(date +%s)@plugin-setup.test"
   local password="SmokeTest123!"
   log "Registering smoke user at $base"
-  local register_body
-  register_body=$(curl -sf --max-time 20 -X POST "$base/api/v1/auth/register" \
+  curl -sf --max-time 20 -X POST "$base/api/v1/auth/register" \
     -H 'Content-Type: application/json' \
-    -d "{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"Smoke Test\"}")
+    -d "{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"Smoke Test\"}" >/dev/null
+
+  log "Logging in smoke user"
+  local login_body
+  login_body=$(curl -sf --max-time 20 -X POST "$base/api/v1/auth/login" \
+    -H 'Content-Type: application/json' \
+    -d "{\"email\":\"$email\",\"password\":\"$password\"}")
 
   local access_token
-  access_token=$(printf '%s' "$register_body" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('access_token',''))")
-  [ -n "$access_token" ] || die "register did not return access_token"
+  access_token=$(printf '%s' "$login_body" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('tokens',{}).get('access_token',''))")
+  [ -n "$access_token" ] || die "login did not return access_token"
 
   log "Installing google-calendar-meet plugin"
   local install_body
   install_body=$(curl -sf --max-time 20 -X POST "$base/api/v1/users/me/plugins" \
     -H "Authorization: Bearer $access_token" \
     -H 'Content-Type: application/json' \
-    -d '{"slug":"google-calendar-meet"}')
+    -d '{"plugin_slug":"google-calendar-meet"}')
 
   local plugin_id
   plugin_id=$(printf '%s' "$install_body" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('id',''))")
