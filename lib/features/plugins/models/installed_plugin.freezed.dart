@@ -214,13 +214,13 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_
 @JsonSerializable()
 
 class _InstalledPlugin implements InstalledPlugin {
-  const _InstalledPlugin({required this.id, required this.slug, required this.name, required this.description, required this.enabled, @JsonKey(name: 'setup_status') required this.setupStatus});
+  const _InstalledPlugin({required this.id, required this.slug, required this.name, this.description = '', required this.enabled, @JsonKey(name: 'setup_status') required this.setupStatus});
   factory _InstalledPlugin.fromJson(Map<String, dynamic> json) => _$InstalledPluginFromJson(json);
 
 @override final  String id;
 @override final  String slug;
 @override final  String name;
-@override final  String description;
+@override@JsonKey() final  String description;
 @override final  bool enabled;
 @override@JsonKey(name: 'setup_status') final  PluginSetupStatus setupStatus;
 
