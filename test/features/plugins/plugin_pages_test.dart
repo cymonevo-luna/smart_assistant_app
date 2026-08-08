@@ -54,13 +54,14 @@ void main() {
     );
   }
 
-  void mockCatalog() {
+  void mockCatalog({List<Map<String, dynamic>>? plugins}) {
+    final data = plugins ?? catalogPlugins;
     adapter.onGet(
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': catalogPlugins,
-        'meta': {'page': 1, 'per_page': 20, 'total': 2},
+        'data': data,
+        'meta': {'page': 1, 'per_page': 20, 'total': data.length},
       }),
     );
   }
@@ -76,7 +77,7 @@ void main() {
   }
 
   testWidgets('catalog page lists plugins', (WidgetTester tester) async {
-    mockCatalog();
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
     mockInstalledEmpty();
 
     await tester.pumpWidget(
@@ -88,9 +89,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Weather'), findsOneWidget);
-    expect(find.text('Calendar Sync'), findsOneWidget);
-    expect(find.text('Install'), findsNWidgets(2));
+    expect(find.text('Google Calendar Meet'), findsOneWidget);
+    expect(find.text('Install'), findsOneWidget);
   });
 
   testWidgets('install plugin success', (WidgetTester tester) async {

@@ -42,7 +42,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           email: _email.text.trim(),
           password: _password.text,
         );
-    if (ok && mounted) context.goNamed(AppRoute.home.name);
+    if (ok && mounted) context.goNamed(AppRoute.assistant.name);
   }
 
   @override

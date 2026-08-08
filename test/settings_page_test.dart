@@ -7,15 +7,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
+import 'package:smart_assistant_app/core/router/app_router.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/assistant/assistant_settings_provider.dart';
 import 'package:smart_assistant_app/features/assistant/data/assistant_settings_repository.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
+import 'package:smart_assistant_app/features/auth/auth_controller.dart';
+import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
 import 'package:smart_assistant_app/features/settings/settings_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import 'helpers/auth_harness.dart';
+import 'helpers/plugin_test_data.dart';
+
+Widget _routerApp() {
+  return MaterialApp.router(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    routerConfig: appRouter,
+  );
+}
 
 Widget _materialApp(Widget home) {
   return MaterialApp(
@@ -27,6 +43,11 @@ Widget _materialApp(Widget home) {
     supportedLocales: AppLocalizations.supportedLocales,
     home: home,
   );
+}
+
+class _AuthenticatedAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 void main() {
@@ -125,7 +146,13 @@ void main() {
     });
   });
 
-  testWidgets('empty wake word blocked', (WidgetTester tester) async {
+  testWidgets('wake word field is fixed to Jarvis (not yet editable)', (
+    WidgetTester tester,
+  ) async {
+    // Local wake-word detection (Porcupine) only supports its built-in
+    // "Jarvis" keyword right now — see wake_word_engine.dart. The field is
+    // disabled rather than removed so it's ready once custom wake words
+    // (per-phrase trained models) are supported.
     adapter.onGet(
       '/api/v1/assistant/settings',
       (server) => server.reply(200, {
@@ -142,15 +169,56 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField), '');
-    await tester.pump(const Duration(milliseconds: 600));
+    final field = tester.widget<TextFormField>(find.byType(TextFormField));
+    expect(field.enabled, isFalse);
+  });
+
+  testWidgets('settings navigates to Manage Plugins', (WidgetTester tester) async {
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+    );
+
+    adapter
+      ..onGet(
+        PluginRepository.catalogPath,
+        (server) => server.reply(200, {
+          'success': true,
+          'data': [catalogGoogleCalendarMeet],
+          'meta': {'page': 1, 'per_page': 20, 'total': 1},
+        }),
+      )
+      ..onGet(
+        PluginRepository.installedPath,
+        (server) => server.reply(200, {
+          'success': true,
+          'data': <Map<String, dynamic>>[],
+        }),
+      );
+
+    locator.registerSingleton<PluginRepository>(
+      PluginRepository(locator<ApiClient>()),
+    );
+
+    appRouter.go(AppRoute.settings.path);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith(_AuthenticatedAuthController.new),
+          assistantSettingsProvider.overrideWith(
+            () => _FakeAssistantSettingsNotifier(defaults),
+          ),
+        ],
+        child: _routerApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text('Wake word cannot be empty'), findsOneWidget);
-    expect(
-      adapter.history.where((h) => h.request.method?.name == 'PUT'),
-      isEmpty,
-    );
+    await tester.tap(find.text('Plugins'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Manage Plugins'), findsOneWidget);
   });
 }
 

@@ -1,13 +1,32 @@
+const catalogGoogleCalendarMeet = {
+  'id': 'catalog-gcm',
+  'slug': 'google-calendar-meet',
+  'name': 'Google Calendar Meet',
+  'description': 'Schedule Google Meet calls from your calendar',
+  'version': '1.0.0',
+  'required_setup': true,
+  'setup_type': 'oauth_google',
+};
+
 const catalogPlugins = [
+  catalogGoogleCalendarMeet,
   {
+    'id': 'catalog-weather',
     'slug': 'weather',
     'name': 'Weather',
     'description': 'Get weather forecasts',
+    'version': '1.0.0',
+    'required_setup': true,
+    'setup_type': 'oauth_google',
   },
   {
+    'id': 'catalog-calendar',
     'slug': 'calendar',
     'name': 'Calendar Sync',
     'description': 'Sync your calendar events',
+    'version': '1.0.0',
+    'required_setup': false,
+    'setup_type': null,
   },
 ];
 

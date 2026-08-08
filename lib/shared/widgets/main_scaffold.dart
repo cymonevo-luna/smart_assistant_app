@@ -30,21 +30,6 @@ class MainScaffold extends StatelessWidget {
         onDestinationSelected: _onSelected,
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
-            label: l10n.home,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.check_box_outlined),
-            selectedIcon: const Icon(Icons.check_box),
-            label: l10n.tasks,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.calendar_today_outlined),
-            selectedIcon: const Icon(Icons.calendar_today),
-            label: l10n.calendar,
-          ),
-          NavigationDestination(
             icon: const Icon(Icons.mic_none_outlined),
             selectedIcon: const Icon(Icons.mic),
             label: l10n.assistant,

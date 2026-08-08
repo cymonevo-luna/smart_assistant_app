@@ -74,8 +74,9 @@
   "assistant": "Assistant",
   "wakeWord": "Wake word",
   "activeListening": "Active listening",
-  "activeListeningSubtitle": "Keeps the microphone active to detect your wake word. May increase battery usage.",
+  "activeListeningSubtitle": "Runs a low-power on-device listener for your wake word. Minimal battery impact.",
   "wakeWordRequired": "Wake word cannot be empty",
+  "wakeWordFixedNotice": "Custom wake words aren't supported yet — active listening only responds to \"Jarvis\".",
   "listeningForWakeWord": "Listening for {wakeWord}…",
   "@listeningForWakeWord": {
     "placeholders": {
