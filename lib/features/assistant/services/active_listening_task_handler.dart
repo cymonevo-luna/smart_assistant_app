@@ -24,9 +24,7 @@ class ActiveListeningTaskHandler extends TaskHandler {
     // singleton.
     await AppConfig.load();
 
-    final engine = PorcupineWakeWordEngine(
-      accessKey: AppConfig.picovoiceAccessKey,
-    );
+    final engine = createWakeWordEngine();
     engine.onWakeWord = () {
       FlutterForegroundTask.sendDataToMain(wakeWordDetectedMessage);
     };

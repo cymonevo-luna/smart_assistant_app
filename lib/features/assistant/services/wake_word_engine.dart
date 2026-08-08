@@ -2,6 +2,9 @@ import 'package:porcupine_flutter/porcupine.dart';
 import 'package:porcupine_flutter/porcupine_error.dart';
 import 'package:porcupine_flutter/porcupine_manager.dart';
 
+import '../../../core/config/app_config.dart';
+import 'davoice_wake_word_engine.dart';
+
 /// Low-power, on-device wake-word detection.
 ///
 /// Unlike running the full speech recognizer continuously, this only runs a
@@ -21,6 +24,12 @@ abstract class WakeWordEngine {
   bool get isRunning;
 
   String? get lastError;
+
+  /// Invoked (on the isolate this engine runs in) when the wake word fires.
+  set onWakeWord(void Function()? callback);
+
+  /// Invoked when the engine hits a runtime error after starting.
+  set onError(void Function(String message)? callback);
 }
 
 /// Porcupine-backed implementation. "Jarvis" ships as one of Porcupine's free
@@ -111,6 +120,25 @@ class PorcupineWakeWordEngine implements WakeWordEngine {
   }
 }
 
+/// Builds the [WakeWordEngine] selected by [AppConfig.wakeWordEngine],
+/// falling back to [NoOpWakeWordEngine] when its required config is missing.
+/// Single call site for both the Android background isolate
+/// ([ActiveListeningTaskHandler]) and the iOS foreground path
+/// ([ActiveListeningController]) so they never hardcode a specific engine.
+WakeWordEngine createWakeWordEngine() {
+  if (!AppConfig.wakeWordEngineConfigured) {
+    return NoOpWakeWordEngine();
+  }
+  return switch (AppConfig.wakeWordEngine) {
+    WakeWordEngineKind.picovoice =>
+      PorcupineWakeWordEngine(accessKey: AppConfig.picovoiceAccessKey),
+    WakeWordEngineKind.davoice => DaVoiceWakeWordEngine(
+        licenseKey: AppConfig.daVoiceLicenseKey,
+        threshold: AppConfig.daVoiceWakeWordThreshold,
+      ),
+  };
+}
+
 /// No-op engine for platforms/tests where wake-word detection is unavailable.
 class NoOpWakeWordEngine implements WakeWordEngine {
   @override
@@ -127,4 +155,10 @@ class NoOpWakeWordEngine implements WakeWordEngine {
 
   @override
   Future<void> dispose() async {}
+
+  @override
+  set onWakeWord(void Function()? callback) {}
+
+  @override
+  set onError(void Function(String message)? callback) {}
 }

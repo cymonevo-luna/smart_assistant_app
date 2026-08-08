@@ -2,6 +2,12 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // flutter_wake_word (DaVoice) ships its native keyword-detection AAR
+        // as a local flat-dir maven repo inside the plugin itself rather
+        // than publishing to a public repo; the plugin's own build.gradle
+        // registers this too, but that doesn't reach :app's dependency
+        // resolution — DaVoice's own setup docs say to add it here too.
+        maven { url = uri("${project(":flutter_wake_word").projectDir}/libs") }
     }
 }
 

@@ -53,9 +53,9 @@ class ActiveListeningState {
   }
 }
 
-/// Drives on-device wake-word monitoring (Porcupine — see
-/// [PorcupineWakeWordEngine]) and hands off to [AssistantController] once
-/// the wake word fires.
+/// Drives on-device wake-word monitoring (Porcupine or DaVoice, selected via
+/// [AppConfig.wakeWordEngine] — see [createWakeWordEngine]) and hands off to
+/// [AssistantController] once the wake word fires.
 ///
 /// On Android, monitoring runs inside a foreground-service-backed isolate
 /// ([ActiveListeningTaskHandler]) so it keeps running even if the app is
@@ -158,7 +158,7 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
       state = state.copyWith(mode: ActiveListeningMode.paused);
       return;
     }
-    if (AppConfig.picovoiceAccessKey.isEmpty) {
+    if (!AppConfig.wakeWordEngineConfigured) {
       state = state.copyWith(
         mode: ActiveListeningMode.idle,
         errorMessage: 'Active listening is not configured yet.',
@@ -196,9 +196,7 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
   }
 
   Future<bool> _startIosMonitoring() async {
-    final engine = _iosEngine ??= PorcupineWakeWordEngine(
-      accessKey: AppConfig.picovoiceAccessKey,
-    )
+    final engine = _iosEngine ??= createWakeWordEngine()
       ..onWakeWord = _onWakeWordDetected
       ..onError = (message) => state = state.copyWith(errorMessage: message);
     return engine.start();
@@ -247,10 +245,10 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
     }
   }
 
-  /// Porcupine only reports that the wake word fired — it never transcribes,
-  /// so there is no trailing command text like the old transcript-matching
-  /// approach could capture. The assistant always opens a normal listening
-  /// session for the follow-up command.
+  /// Both engines only report that the wake word fired — neither
+  /// transcribes, so there is no trailing command text like the old
+  /// transcript-matching approach could capture. The assistant always opens
+  /// a normal listening session for the follow-up command.
   void _onWakeWordDetected() {
     _handleWakeWordDetected();
   }
