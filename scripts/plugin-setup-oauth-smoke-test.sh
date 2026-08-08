@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
-# Plugin setup OAuth smoke test (manual QA case 4).
+# Plugin setup OAuth smoke test (manual QA case 4, JARVIS-18-4 install contract).
 #
-# 1. When API_BASE_URL in .env points at a reachable staging/local API, exercises
-#    the backend OAuth callback path with a mock authorization code (same contract
-#    as smart_assistant_api integration tests).
+# QA case JARVIS-18-4: a fresh google-calendar-meet install must return
+# setup_status=not_started (PR #28 auto-navigation trigger), a non-empty
+# user-plugin id, and plugin.slug=google-calendar-meet.
+#
+# 1. When API_BASE_URL in .env points at a reachable staging/local API, registers
+#    a user, installs google-calendar-meet, asserts the install contract above,
+#    then optionally exercises the backend OAuth callback path with a mock
+#    authorization code (same contract as smart_assistant_api integration tests).
 # 2. Always runs the Flutter integration smoke test that mirrors the in-app flow.
+#    Install contract assertion failures exit non-zero before Flutter smoke.
 #
 # Usage (from repo root):
 #   cp .env.qa-local.example .env   # host-side local QA API (localhost:8080)
@@ -66,11 +72,22 @@ api_install_smoke() {
     -H 'Content-Type: application/json' \
     -d '{"plugin_slug":"google-calendar-meet"}')
 
-  local plugin_id
-  plugin_id=$(printf '%s' "$install_body" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('id',''))")
-  [ -n "$plugin_id" ] || die "install did not return plugin id"
+  local plugin_id setup_status plugin_slug
+  IFS=$'\t' read -r plugin_id setup_status plugin_slug < <(printf '%s' "$install_body" | python3 -c "
+import json, sys
+data = json.load(sys.stdin).get('data', {})
+print('\t'.join([
+    data.get('id', '') or '',
+    data.get('setup_status', '') or '',
+    (data.get('plugin') or {}).get('slug', '') or '',
+]))
+")
 
-  log "API install smoke test PASSED (plugin_id=$plugin_id)"
+  [ -n "$plugin_id" ] || die "install contract assertion failed: data.id is empty"
+  [ "$setup_status" = "not_started" ] || die "install contract assertion failed: setup_status expected 'not_started', got '${setup_status}'"
+  [ "$plugin_slug" = "google-calendar-meet" ] || die "install contract assertion failed: plugin.slug expected 'google-calendar-meet', got '${plugin_slug}'"
+
+  log "API install contract PASSED (setup_status=not_started, plugin_id=$plugin_id)"
   API_SMOKE_ACCESS_TOKEN="$access_token"
   API_SMOKE_PLUGIN_ID="$plugin_id"
 }
