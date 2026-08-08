@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/assistant/pages/assistant_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
@@ -23,7 +24,7 @@ enum AppRoute {
   home('/home'),
   tasks('/tasks'),
   calendar('/calendar'),
-  messages('/messages'),
+  assistant('/assistant'),
   profile('/profile'),
   settings('/settings'),
   pluginStore('/plugins/store'),
@@ -105,12 +106,9 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoute.messages.path,
-              name: AppRoute.messages.name,
-              builder: (context, state) => ComingSoonPage(
-                title: AppLocalizations.of(context).messages,
-                icon: Icons.chat_bubble_outline,
-              ),
+              path: AppRoute.assistant.path,
+              name: AppRoute.assistant.name,
+              builder: (context, state) => const AssistantPage(),
             ),
           ],
         ),

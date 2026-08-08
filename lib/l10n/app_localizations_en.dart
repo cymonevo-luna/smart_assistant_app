@@ -27,6 +27,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messages => 'Messages';
 
   @override
+  String get assistant => 'Assistant';
+
+  @override
+  String get assistantProcessing => 'Thinking...';
+
+  @override
+  String get assistantSpeaking => 'Speaking...';
+
+  @override
   String get profile => 'Profile';
 
   @override
@@ -177,9 +186,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'Passwords do not match';
-
-  @override
-  String get assistant => 'Assistant';
 
   @override
   String get wakeWord => 'Wake word';
