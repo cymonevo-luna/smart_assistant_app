@@ -341,5 +341,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Beberapa plugin perlu disetup sebelum dapat digunakan.';
 
   @override
+  String get assistantCompleteSetup => 'Selesaikan setup';
+
+  @override
+  String get assistantManagePlugins => 'Kelola plugin';
+
+  @override
   String get openInBrowser => 'Buka di browser';
 }
