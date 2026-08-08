@@ -334,4 +334,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openInBrowser => 'Open in browser';
+
+  @override
+  String get reminderNotificationsTitle => 'Reminder notifications';
+
+  @override
+  String get reminderNotificationsDescription =>
+      'Reminder notifications are enabled when the Reminder plugin is installed. The app syncs reminders from your account and shows local alerts at the scheduled time.';
+
+  @override
+  String get reminderNotificationsRequestPermission =>
+      'Check notification permission';
+
+  @override
+  String get reminderNotificationsPermissionRequested =>
+      'Notification permission checked. Reminders will sync when allowed.';
 }

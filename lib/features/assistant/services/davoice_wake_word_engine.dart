@@ -18,12 +18,11 @@ import 'wake_word_engine.dart';
 /// only the per-instance API actually streams detection events.
 class DaVoiceWakeWordEngine implements WakeWordEngine {
   DaVoiceWakeWordEngine({
-    required String licenseKey,
-    required double threshold,
+    required this._licenseKey,
+    required this._threshold,
     this.modelAssetPath = 'assets/wake_word/jarvis.onnx',
     this.instanceId = 'active_listening',
-  })  : _licenseKey = licenseKey,
-        _threshold = threshold;
+  });
 
   final String _licenseKey;
   final double _threshold;

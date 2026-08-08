@@ -84,7 +84,7 @@ void main() {
       source: 'button',
     );
 
-    expect(response.reply.text, 'Done');
-    expect(response.reply.type.name, 'text');
+    expect(response.response.reply.text, 'Done');
+    expect(response.response.reply.type.name, 'text');
   });
 }

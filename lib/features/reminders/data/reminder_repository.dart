@@ -1,94 +1,59 @@
-import 'dart:convert';
+import '../../../core/network/api_client.dart';
+import '../models/reminder.dart';
 
-import '../../../core/storage/preferences_service.dart';
-import '../models/location_reminder.dart';
+abstract class ReminderDataSource {
+  Future<List<Reminder>> listReminders({String filter = 'all'});
 
-/// Persists [LocationReminder] records on-device for offline proximity checks.
-class ReminderRepository {
-  ReminderRepository(this._prefs);
+  Future<List<Reminder>> listPendingNotifications();
 
-  final PreferencesService _prefs;
+  Future<void> markDelivered(String reminderId);
+}
 
-  Future<void> save(LocationReminder reminder) async {
-    final reminders = await _loadAll();
-    final index = reminders.indexWhere((item) => item.id == reminder.id);
-    if (index >= 0) {
-      reminders[index] = reminder;
-    } else {
-      reminders.add(reminder);
-    }
-    await _persistAll(reminders);
-  }
+class ReminderRepository implements ReminderDataSource {
+  ReminderRepository(this._api);
 
-  Future<List<LocationReminder>> getAllPending() async {
-    final reminders = await _loadAll();
-    return reminders
-        .where((item) => item.status == ReminderStatus.pending)
-        .toList();
-  }
+  final ApiClient _api;
 
-  Future<LocationReminder?> getById(String id) async {
-    final reminders = await _loadAll();
-    for (final reminder in reminders) {
-      if (reminder.id == id) {
-        return reminder;
-      }
-    }
-    return null;
-  }
+  static const remindersPath = '/api/v1/users/me/reminders';
 
-  Future<void> markTriggered(String id) async {
-    final reminders = await _loadAll();
-    final index = reminders.indexWhere((item) => item.id == id);
-    if (index < 0) {
-      return;
-    }
-
-    reminders[index] = reminders[index].copyWith(
-      status: ReminderStatus.triggered,
+  @override
+  Future<List<Reminder>> listReminders({String filter = 'all'}) {
+    return _api.get<List<Reminder>>(
+      remindersPath,
+      query: {'filter': filter},
+      decoder: (raw) => _parseList(raw, Reminder.fromJson),
     );
-    await _persistAll(reminders);
   }
 
-  Future<void> delete(String id) async {
-    final reminders = await _loadAll();
-    reminders.removeWhere((item) => item.id == id);
-    await _persistAll(reminders);
-  }
-
-  /// Replaces pending reminders with server data while keeping triggered history.
-  Future<void> syncFromApi(List<LocationReminder> reminders) async {
-    final existing = await _loadAll();
-    final triggered = existing
-        .where((item) => item.status == ReminderStatus.triggered)
-        .toList();
-    await _persistAll([...triggered, ...reminders]);
-  }
-
-  Future<List<LocationReminder>> _loadAll() async {
-    final raw = _prefs.getString(PrefKeys.locationReminders);
-    if (raw == null || raw.isEmpty) {
-      return [];
-    }
-
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) {
-      return [];
-    }
-
-    return decoded
-        .map(
-          (item) => LocationReminder.fromJson(
-            (item as Map).cast<String, dynamic>(),
-          ),
-        )
-        .toList();
-  }
-
-  Future<void> _persistAll(List<LocationReminder> reminders) async {
-    final encoded = jsonEncode(
-      reminders.map((item) => item.toJson()).toList(),
+  @override
+  Future<List<Reminder>> listPendingNotifications() {
+    return _api.get<List<Reminder>>(
+      '$remindersPath/notifications/pending',
+      decoder: (raw) => _parseList(raw, Reminder.fromJson),
     );
-    await _prefs.setString(PrefKeys.locationReminders, encoded);
+  }
+
+  @override
+  Future<void> markDelivered(String reminderId) {
+    return _api.post<void>(
+      '$remindersPath/$reminderId/delivered',
+      decoder: (_) {},
+    );
+  }
+
+  List<T> _parseList<T>(
+    dynamic raw,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    final items = _unwrapList(raw);
+    return items
+        .map((item) => fromJson((item as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  List<dynamic> _unwrapList(dynamic raw) {
+    if (raw is List) return raw;
+    final map = (raw as Map).cast<String, dynamic>();
+    return (map['data'] as List).cast<dynamic>();
   }
 }

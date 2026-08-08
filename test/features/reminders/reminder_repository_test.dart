@@ -1,73 +1,73 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:smart_assistant_app/core/di/locator.dart';
+import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
-import 'package:smart_assistant_app/features/reminders/models/location_reminder.dart';
+import 'package:smart_assistant_app/features/reminders/models/reminder.dart';
+
+import '../../helpers/auth_harness.dart';
 
 void main() {
-  late PreferencesService prefs;
+  late DioAdapter adapter;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    prefs = await PreferencesService.create();
+    await locator.reset();
+    final prefs = await PreferencesService.create();
+    final mocked = buildMockedApiClient();
+    adapter = mocked.adapter;
+    locator
+      ..registerSingleton<PreferencesService>(prefs)
+      ..registerSingleton<ApiClient>(mocked.client)
+      ..registerSingleton<ReminderRepository>(
+        ReminderRepository(mocked.client),
+      );
   });
 
-  LocationReminder pendingReminder({
-    String id = 'test-1',
-    String title = 'Buy milk',
-    int radiusMeters = 150,
-  }) {
-    return LocationReminder(
-      id: id,
-      title: title,
-      locationMode: LocationMode.exact,
-      latitude: 37.7749,
-      longitude: -122.4194,
-      radiusMeters: radiusMeters,
+  test('listReminders parses reminder JSON with remind_at DateTime', () async {
+    adapter.onGet(
+      ReminderRepository.remindersPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': [
+          {
+            'id': 'rem-1',
+            'message': 'Take medicine',
+            'remind_at': '2026-08-08T15:30:00.000Z',
+            'status': 'pending',
+          },
+        ],
+      }),
+      queryParameters: {'filter': 'all'},
     );
-  }
 
-  test('save and load pending reminder', () async {
-    final repo = ReminderRepository(prefs);
-    await repo.save(
-      pendingReminder(
-        id: 'test-1',
-        title: 'Buy milk',
-        radiusMeters: 150,
-      ),
+    final reminders = await locator<ReminderRepository>().listReminders();
+
+    expect(reminders, hasLength(1));
+    expect(reminders.first.id, 'rem-1');
+    expect(reminders.first.message, 'Take medicine');
+    expect(reminders.first.status, ReminderStatus.pending);
+    expect(reminders.first.remindAt.toUtc(), DateTime.utc(2026, 8, 8, 15, 30));
+  });
+
+  test('reminderNotificationId is stable for the same UUID', () {
+    const id = '550e8400-e29b-41d4-a716-446655440000';
+
+    expect(reminderNotificationId(id), reminderNotificationId(id));
+    expect(reminderNotificationId(id), isPositive);
+  });
+
+  test('markDelivered posts to delivered endpoint', () async {
+    adapter.onPost(
+      '${ReminderRepository.remindersPath}/rem-1/delivered',
+      (server) => server.reply(200, {'success': true}),
     );
 
-    final pending = await repo.getAllPending();
+    await locator<ReminderRepository>().markDelivered('rem-1');
 
-    expect(pending, hasLength(1));
-    expect(pending.first.id, 'test-1');
-    expect(pending.first.title, 'Buy milk');
-    expect(pending.first.radiusMeters, 150);
-  });
-
-  test('mark triggered removes from pending', () async {
-    final repo = ReminderRepository(prefs);
-    await repo.save(pendingReminder(id: 'test-1'));
-
-    await repo.markTriggered('test-1');
-
-    final pending = await repo.getAllPending();
-    expect(pending, isEmpty);
-
-    final stored = await repo.getById('test-1');
-    expect(stored?.status, ReminderStatus.triggered);
-  });
-
-  test('persistence across repository re-instantiation', () async {
-    final repo = ReminderRepository(prefs);
-    await repo.save(pendingReminder(id: 'test-1', title: 'Buy milk'));
-
-    final relaunched = ReminderRepository(prefs);
-    final pending = await relaunched.getAllPending();
-
-    expect(pending, hasLength(1));
-    expect(pending.first.id, 'test-1');
-    expect(pending.first.title, 'Buy milk');
+    expect(adapter.history.where((h) => h.request.method?.name == 'POST'), isNotEmpty);
   });
 }
