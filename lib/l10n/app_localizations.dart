@@ -469,6 +469,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save settings. Showing cached values.'**
   String get assistantSettingsSaveFailed;
+
+  /// No description provided for @plugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins'**
+  String get plugins;
+
+  /// No description provided for @pluginStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Store'**
+  String get pluginStore;
+
+  /// No description provided for @myPlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'My Plugins'**
+  String get myPlugins;
+
+  /// No description provided for @install.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get install;
+
+  /// No description provided for @uninstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall'**
+  String get uninstall;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @pluginStoreEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins available yet.'**
+  String get pluginStoreEmpty;
+
+  /// No description provided for @noPluginsInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins installed'**
+  String get noPluginsInstalled;
+
+  /// No description provided for @noPluginsInstalledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse the plugin store to extend your assistant.'**
+  String get noPluginsInstalledSubtitle;
+
+  /// No description provided for @browsePluginStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Plugin Store'**
+  String get browsePluginStore;
+
+  /// No description provided for @pluginLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load plugins. Please try again.'**
+  String get pluginLoadFailed;
+
+  /// No description provided for @pluginActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get pluginActionFailed;
+
+  /// No description provided for @pluginInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} installed'**
+  String pluginInstalled(String name);
+
+  /// No description provided for @pluginUninstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} uninstalled'**
+  String pluginUninstalled(String name);
+
+  /// No description provided for @uninstallPlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall plugin?'**
+  String get uninstallPlugin;
+
+  /// No description provided for @uninstallPluginConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your assistant?'**
+  String uninstallPluginConfirm(String name);
+
+  /// No description provided for @setupNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup needed'**
+  String get setupNotStarted;
+
+  /// No description provided for @setupInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup in progress'**
+  String get setupInProgress;
+
+  /// No description provided for @setupCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get setupCompleted;
+
+  /// No description provided for @pluginSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Setup'**
+  String get pluginSetup;
+
+  /// No description provided for @pluginSetupComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin setup will be available in a future update.'**
+  String get pluginSetupComingSoon;
 }
 
 class _AppLocalizationsDelegate

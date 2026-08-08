@@ -197,4 +197,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get assistantSettingsSaveFailed =>
       'Could not save settings. Showing cached values.';
+
+  @override
+  String get plugins => 'Plugins';
+
+  @override
+  String get pluginStore => 'Plugin Store';
+
+  @override
+  String get myPlugins => 'My Plugins';
+
+  @override
+  String get install => 'Install';
+
+  @override
+  String get uninstall => 'Uninstall';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get pluginStoreEmpty => 'No plugins available yet.';
+
+  @override
+  String get noPluginsInstalled => 'No plugins installed';
+
+  @override
+  String get noPluginsInstalledSubtitle =>
+      'Browse the plugin store to extend your assistant.';
+
+  @override
+  String get browsePluginStore => 'Browse Plugin Store';
+
+  @override
+  String get pluginLoadFailed => 'Could not load plugins. Please try again.';
+
+  @override
+  String get pluginActionFailed => 'Something went wrong. Please try again.';
+
+  @override
+  String pluginInstalled(String name) {
+    return '$name installed';
+  }
+
+  @override
+  String pluginUninstalled(String name) {
+    return '$name uninstalled';
+  }
+
+  @override
+  String get uninstallPlugin => 'Uninstall plugin?';
+
+  @override
+  String uninstallPluginConfirm(String name) {
+    return 'Remove $name from your assistant?';
+  }
+
+  @override
+  String get setupNotStarted => 'Setup needed';
+
+  @override
+  String get setupInProgress => 'Setup in progress';
+
+  @override
+  String get setupCompleted => 'Ready';
+
+  @override
+  String get pluginSetup => 'Plugin Setup';
+
+  @override
+  String get pluginSetupComingSoon =>
+      'Plugin setup will be available in a future update.';
 }
