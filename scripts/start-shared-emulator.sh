@@ -6,6 +6,9 @@
 #
 # Policy: reuse any running emulator — never start a second one.
 # AVD: Luna_Test_Lite only (1536 MB RAM, 1 vCPU, Nexus 5X, API 34).
+#
+# Manual smoke tests against a local API on the host: copy .env.emulator.example
+# to .env so the app targets http://10.0.2.2:8080 from the emulator.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"

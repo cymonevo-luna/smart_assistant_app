@@ -46,8 +46,9 @@ class ShowcasePage extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.pushNamed(AppRoute.details.name),
-        child: const Icon(Icons.add),
+        onPressed: () => context.goNamed(AppRoute.assistant.name),
+        tooltip: l10n.assistant,
+        child: const Icon(Icons.mic),
       ),
       body: ListView(
         padding: AppSpacing.screenPadding,

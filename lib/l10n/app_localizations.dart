@@ -134,6 +134,24 @@ abstract class AppLocalizations {
   /// **'Messages'**
   String get messages;
 
+  /// No description provided for @assistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get assistant;
+
+  /// No description provided for @assistantProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking...'**
+  String get assistantProcessing;
+
+  /// No description provided for @assistantSpeaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking...'**
+  String get assistantSpeaking;
+
   /// No description provided for @profile.
   ///
   /// In en, this message translates to:
@@ -433,12 +451,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords do not match'**
   String get passwordsDoNotMatch;
-
-  /// No description provided for @assistant.
-  ///
-  /// In en, this message translates to:
-  /// **'Assistant'**
-  String get assistant;
 
   /// No description provided for @wakeWord.
   ///

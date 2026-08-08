@@ -45,9 +45,9 @@ class MainScaffold extends StatelessWidget {
             label: l10n.calendar,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline),
-            selectedIcon: const Icon(Icons.chat_bubble),
-            label: l10n.messages,
+            icon: const Icon(Icons.mic_none_outlined),
+            selectedIcon: const Icon(Icons.mic),
+            label: l10n.assistant,
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),
