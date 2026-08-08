@@ -614,17 +614,65 @@ abstract class AppLocalizations {
   /// **'Ready'**
   String get setupCompleted;
 
+  /// No description provided for @setupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup failed'**
+  String get setupFailed;
+
   /// No description provided for @pluginSetup.
   ///
   /// In en, this message translates to:
   /// **'Plugin Setup'**
   String get pluginSetup;
 
-  /// No description provided for @pluginSetupComingSoon.
+  /// No description provided for @pluginSetupInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Plugin setup will be available in a future update.'**
-  String get pluginSetupComingSoon;
+  /// **'Connect your Google account so this plugin can access your calendar and related services.'**
+  String get pluginSetupInstructions;
+
+  /// No description provided for @connectGoogleAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Google Account'**
+  String get connectGoogleAccount;
+
+  /// No description provided for @pluginSetupWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for authorization…'**
+  String get pluginSetupWaiting;
+
+  /// No description provided for @pluginSetupSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup complete! This plugin is ready to use.'**
+  String get pluginSetupSuccess;
+
+  /// No description provided for @pluginSetupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup could not be completed.'**
+  String get pluginSetupFailed;
+
+  /// No description provided for @pluginSetupRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get pluginSetupRetry;
+
+  /// No description provided for @pluginsSetupIncompleteBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Some plugins need setup before they can be used.'**
+  String get pluginsSetupIncompleteBanner;
+
+  /// No description provided for @openInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get openInBrowser;
 }
 
 class _AppLocalizationsDelegate

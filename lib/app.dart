@@ -1,22 +1,41 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/di/locator.dart';
 import 'core/localization/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/assistant/active_listening_controller.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
+import 'features/plugins/plugin_setup_deep_link_provider.dart';
+import 'features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root widget. Rebuilds [MaterialApp] whenever the theme or locale providers
 /// change, so switching is instant app-wide.
-class App extends ConsumerWidget {
+class App extends ConsumerStatefulWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<App> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pluginSetupDeepLinkNotifierProvider);
+      unawaited(locator<PluginSetupDeepLinkService>().startListening());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(speechToTextInitializationProvider);
     ref.watch(activeListeningControllerProvider);
     final theme = ref.watch(themeProvider);

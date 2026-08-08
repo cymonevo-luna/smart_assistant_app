@@ -281,9 +281,34 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupCompleted => 'Siap';
 
   @override
+  String get setupFailed => 'Setup gagal';
+
+  @override
   String get pluginSetup => 'Setup Plugin';
 
   @override
-  String get pluginSetupComingSoon =>
-      'Setup plugin akan tersedia di pembaruan mendatang.';
+  String get pluginSetupInstructions =>
+      'Hubungkan akun Google agar plugin ini dapat mengakses kalender dan layanan terkait.';
+
+  @override
+  String get connectGoogleAccount => 'Hubungkan Akun Google';
+
+  @override
+  String get pluginSetupWaiting => 'Menunggu otorisasi…';
+
+  @override
+  String get pluginSetupSuccess => 'Setup selesai! Plugin ini siap digunakan.';
+
+  @override
+  String get pluginSetupFailed => 'Setup tidak dapat diselesaikan.';
+
+  @override
+  String get pluginSetupRetry => 'Coba lagi';
+
+  @override
+  String get pluginsSetupIncompleteBanner =>
+      'Beberapa plugin perlu disetup sebelum dapat digunakan.';
+
+  @override
+  String get openInBrowser => 'Buka di browser';
 }

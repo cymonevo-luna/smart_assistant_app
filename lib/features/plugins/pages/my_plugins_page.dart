@@ -129,24 +129,48 @@ class _MyPluginsPageState extends ConsumerState<MyPluginsPage> {
           ),
         ),
         data: (plugins) {
-          if (plugins.isEmpty) {
-            return _EmptyState(
-              onBrowseStore: () => context.pushNamed(AppRoute.pluginStore.name),
-            );
-          }
-          return ListView.separated(
-            padding: AppSpacing.screenPadding,
-            itemCount: plugins.length,
-            separatorBuilder: (_, _) => const VGap(AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final plugin = plugins[index];
-              return _InstalledTile(
-                plugin: plugin,
-                onToggle: (enabled) => _toggleEnabled(plugin, enabled),
-                onUninstall: () => _confirmUninstall(plugin),
-                onSetupTap: () => _onSetupTap(plugin),
-              );
-            },
+          final incompletePlugins = plugins
+              .where(
+                (plugin) => plugin.setupStatus != PluginSetupStatus.completed,
+              )
+              .toList();
+
+          return Column(
+            children: [
+              if (incompletePlugins.isNotEmpty)
+                MaterialBanner(
+                  content: Text(l10n.pluginsSetupIncompleteBanner),
+                  leading: const Icon(Icons.info_outline),
+                  actions: [
+                    TextButton(
+                      onPressed: () => _onSetupTap(incompletePlugins.first),
+                      child: Text(l10n.pluginSetup),
+                    ),
+                  ],
+                ),
+              Expanded(
+                child: plugins.isEmpty
+                    ? _EmptyState(
+                        onBrowseStore: () =>
+                            context.pushNamed(AppRoute.pluginStore.name),
+                      )
+                    : ListView.separated(
+                        padding: AppSpacing.screenPadding,
+                        itemCount: plugins.length,
+                        separatorBuilder: (_, _) => const VGap(AppSpacing.sm),
+                        itemBuilder: (context, index) {
+                          final plugin = plugins[index];
+                          return _InstalledTile(
+                            plugin: plugin,
+                            onToggle: (enabled) =>
+                                _toggleEnabled(plugin, enabled),
+                            onUninstall: () => _confirmUninstall(plugin),
+                            onSetupTap: () => _onSetupTap(plugin),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -205,56 +229,60 @@ class _InstalledTile extends StatelessWidget {
     final setupIncomplete = plugin.setupStatus != PluginSetupStatus.completed;
 
     return AppCard(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText.title(plugin.name),
-                      const VGap(AppSpacing.xs),
-                      AppText.body(plugin.description, muted: true),
-                    ],
+      child: InkWell(
+        onTap: setupIncomplete ? onSetupTap : null,
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppText.title(plugin.name),
+                        const VGap(AppSpacing.xs),
+                        AppText.body(plugin.description, muted: true),
+                      ],
+                    ),
                   ),
-                ),
-                const HGap(AppSpacing.sm),
-                _SetupStatusBadge(
-                  status: plugin.setupStatus,
-                  onTap: setupIncomplete ? onSetupTap : null,
-                ),
-              ],
-            ),
-            const VGap(AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: AppText.label(l10n.enabled),
-                ),
-                Switch(
-                  key: ValueKey('plugin_enabled_${plugin.id}'),
-                  value: plugin.enabled,
-                  onChanged: onToggle,
-                ),
-              ],
-            ),
-            const VGap(AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerRight,
-              child: AppButton(
-                l10n.uninstall,
-                variant: AppButtonVariant.text,
-                expand: false,
-                size: AppButtonSize.small,
-                onPressed: onUninstall,
+                  const HGap(AppSpacing.sm),
+                  _SetupStatusBadge(
+                    status: plugin.setupStatus,
+                    onTap: setupIncomplete ? onSetupTap : null,
+                  ),
+                ],
               ),
-            ),
-          ],
+              const VGap(AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppText.label(l10n.enabled),
+                  ),
+                  Switch(
+                    key: ValueKey('plugin_enabled_${plugin.id}'),
+                    value: plugin.enabled,
+                    onChanged: onToggle,
+                  ),
+                ],
+              ),
+              const VGap(AppSpacing.sm),
+              Align(
+                alignment: Alignment.centerRight,
+                child: AppButton(
+                  l10n.uninstall,
+                  variant: AppButtonVariant.text,
+                  expand: false,
+                  size: AppButtonSize.small,
+                  onPressed: onUninstall,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -275,6 +303,7 @@ class _SetupStatusBadge extends StatelessWidget {
       PluginSetupStatus.notStarted => (l10n.setupNotStarted, tokens.warning),
       PluginSetupStatus.inProgress => (l10n.setupInProgress, tokens.info),
       PluginSetupStatus.completed => (l10n.setupCompleted, tokens.success),
+      PluginSetupStatus.failed => (l10n.setupFailed, tokens.danger),
     };
 
     final badge = Container(
