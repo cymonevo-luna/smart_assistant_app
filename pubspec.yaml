@@ -58,9 +58,12 @@ dependencies:
   flutter_wake_word: ^0.0.44
   home_widget: ^0.9.3
   geolocator: ^13.0.0
+  flutter_local_notifications: ^18.0.0
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to

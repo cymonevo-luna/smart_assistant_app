@@ -6,9 +6,11 @@ class ChatMessage {
     required this.text,
     required this.isUser,
     this.replyType,
+    this.action,
   });
 
   final String text;
   final bool isUser;
   final AssistantReplyType? replyType;
+  final AssistantAction? action;
 }

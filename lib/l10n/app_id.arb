@@ -105,5 +105,7 @@
   "pluginSetupFailed": "Setup tidak dapat diselesaikan.",
   "pluginSetupRetry": "Coba lagi",
   "pluginsSetupIncompleteBanner": "Beberapa plugin perlu disetup sebelum dapat digunakan.",
+  "assistantCompleteSetup": "Selesaikan setup",
+  "assistantManagePlugins": "Kelola plugin",
   "openInBrowser": "Buka di browser"
 }

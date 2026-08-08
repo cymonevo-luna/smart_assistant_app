@@ -297,4 +297,82 @@ void main() {
     );
     expect(mic.onTap, isNotNull);
   });
+
+  testWidgets('assistant reply with setup_incomplete shows Complete setup CTA',
+      (tester) async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions/sess-1/messages',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'reply': {
+            'type': 'text',
+            'text': 'Please connect your calendar.',
+            'action': {
+              'plugin_slug': 'google-calendar',
+              'payload': {
+                'reason': 'setup_incomplete',
+                'install_id': 'test-id',
+              },
+            },
+          },
+          'session_status': 'active',
+        },
+      }),
+      data: {
+        'text': 'Schedule a meeting',
+        'source': 'button',
+      },
+    );
+
+    await pumpAssistantPage(tester);
+
+    await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
+    await tester.pump();
+    recognizer.emitFinal('Schedule a meeting');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Please connect your calendar.'), findsOneWidget);
+    expect(find.text('Complete setup'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('assistant_complete_setup_button')),
+      findsOneWidget,
+    );
+    expect(ttsEngine.spokenTexts, ['Please connect your calendar.']);
+  });
+
+  testWidgets('assistant reply without action payload has no setup CTA',
+      (tester) async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions/sess-1/messages',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'reply': {
+            'type': 'text',
+            'text': 'Done',
+          },
+          'session_status': 'active',
+        },
+      }),
+      data: {
+        'text': 'Hello',
+        'source': 'button',
+      },
+    );
+
+    await pumpAssistantPage(tester);
+
+    await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
+    await tester.pump();
+    recognizer.emitFinal('Hello');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Done'), findsOneWidget);
+    expect(find.text('Complete setup'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('assistant_complete_setup_button')),
+      findsNothing,
+    );
+  });
 }

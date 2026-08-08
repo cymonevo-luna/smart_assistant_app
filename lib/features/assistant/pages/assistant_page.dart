@@ -7,7 +7,8 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../assistant_controller.dart';
 import '../active_listening_controller.dart';
-import '../models/assistant_reply.dart';
+import '../models/chat_message.dart';
+import '../widgets/assistant_message_bubble.dart';
 
 class AssistantPage extends ConsumerStatefulWidget {
   const AssistantPage({super.key});
@@ -122,11 +123,16 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
               itemBuilder: (context, index) {
                 if (index < state.messages.length) {
                   final message = state.messages[index];
-                  return _ChatBubble(
+                  final latestAssistantIndex = _latestAssistantMessageIndex(
+                    state.messages,
+                  );
+                  return AssistantMessageBubble(
                     key: ValueKey('chat_message_$index'),
                     text: message.text,
                     isUser: message.isUser,
                     replyType: message.replyType,
+                    action: message.action,
+                    showActionCta: index == latestAssistantIndex,
                   );
                 }
                 return _ListeningBubble(text: state.partialTranscript!);
@@ -190,6 +196,15 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
   }
 }
 
+int? _latestAssistantMessageIndex(List<ChatMessage> messages) {
+  for (var index = messages.length - 1; index >= 0; index--) {
+    if (!messages[index].isUser) {
+      return index;
+    }
+  }
+  return null;
+}
+
 class _MicButton extends StatelessWidget {
   const _MicButton({
     required this.enabled,
@@ -222,66 +237,6 @@ class _MicButton extends StatelessWidget {
             color: colors.onPrimary,
             size: 36,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({
-    super.key,
-    required this.text,
-    required this.isUser,
-    this.replyType,
-  });
-
-  final String text;
-  final bool isUser;
-  final AssistantReplyType? replyType;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
-    final background = isUser ? colors.primary : colors.surfaceContainerHighest;
-    final foreground = isUser ? colors.onPrimary : colors.onSurface;
-
-    return Align(
-      alignment: alignment,
-      child: Container(
-        key: ValueKey('assistant_bubble_${isUser ? 'user' : 'assistant'}_$text'),
-        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-        ),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!isUser && replyType == AssistantReplyType.followUp)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: Icon(
-                  Icons.help_outline,
-                  size: 16,
-                  color: foreground.withValues(alpha: 0.8),
-                ),
-              ),
-            Text(
-              text,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: foreground,
-                  ),
-            ),
-          ],
         ),
       ),
     );

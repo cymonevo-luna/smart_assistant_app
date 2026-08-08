@@ -13,6 +13,7 @@ import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
 import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
+import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
@@ -44,13 +45,19 @@ Widget _routerApp() {
   );
 }
 
-class _FakePluginAuthUrlLauncher implements PluginAuthUrlLauncher {
+class _RecordingUrlLauncher implements PluginAuthUrlLauncher {
+  final List<String> urls = [];
+
   @override
-  Future<bool> launchAuthorizationUrl(String url) async => true;
+  Future<bool> launchAuthorizationUrl(String url) async {
+    urls.add(url);
+    return true;
+  }
 }
 
 void main() {
   late DioAdapter adapter;
+  late _RecordingUrlLauncher urlLauncher;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -58,12 +65,13 @@ void main() {
     final prefs = await PreferencesService.create();
     final mocked = buildMockedApiClient();
     adapter = mocked.adapter;
+    urlLauncher = _RecordingUrlLauncher();
     locator
       ..registerSingleton<PreferencesService>(prefs)
       ..registerSingleton<SecureStorageService>(FakeSecureStorage())
       ..registerSingleton<ApiClient>(mocked.client)
       ..registerSingleton<PluginRepository>(PluginRepository(mocked.client))
-      ..registerSingleton<PluginAuthUrlLauncher>(_FakePluginAuthUrlLauncher())
+      ..registerSingleton<PluginAuthUrlLauncher>(urlLauncher)
       ..registerSingleton<PluginSetupDeepLinkService>(PluginSetupDeepLinkService());
   });
 
@@ -168,6 +176,146 @@ void main() {
 
     expect(find.text('Weather'), findsOneWidget);
     expect(find.text('Get weather forecasts'), findsOneWidget);
+  });
+
+  testWidgets('install plugin with incomplete setup navigates to PluginSetupPage',
+      (WidgetTester tester) async {
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    final installedMeet = nestedInstalledPlugin(
+      id: 'install-google-calendar-meet',
+      slug: 'google-calendar-meet',
+      name: 'Google Calendar Meet',
+      setupStatus: 'not_started',
+    );
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedMeet,
+      }),
+      data: {'plugin_slug': 'google-calendar-meet'},
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plugin Setup'), findsOneWidget);
+    expect(find.byType(PluginSetupPage), findsOneWidget);
+    expect(
+      tester.widget<PluginSetupPage>(find.byType(PluginSetupPage)).pluginId,
+      'install-google-calendar-meet',
+    );
+  });
+
+  testWidgets(
+      'install plugin with incomplete setup shows connect and launches OAuth',
+      (WidgetTester tester) async {
+    const installId = 'install-google-calendar-meet';
+    const authorizationUrl =
+        'https://accounts.google.com/o/oauth2/auth?client_id=handoff-test';
+
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    final installedMeet = nestedInstalledPlugin(
+      id: installId,
+      slug: 'google-calendar-meet',
+      name: 'Google Calendar Meet',
+      setupStatus: 'not_started',
+    );
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedMeet,
+      }),
+      data: {'plugin_slug': 'google-calendar-meet'},
+    );
+    adapter.onPost(
+      PluginRepository.setupPath(installId),
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'authorization_url': authorizationUrl,
+          'state': 'test-state',
+        },
+      }),
+    );
+    adapter.onGet(
+      '${PluginRepository.setupPath(installId)}/status',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {'setup_status': 'in_progress'},
+      }),
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PluginSetupPage), findsOneWidget);
+    expect(
+      tester.widget<PluginSetupPage>(find.byType(PluginSetupPage)).pluginId,
+      installId,
+    );
+    expect(find.byKey(const ValueKey('connect_google_account')), findsOneWidget);
+    expect(find.text('Connect Google Account'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('connect_google_account')));
+    await tester.pumpAndSettle();
+
+    expect(urlLauncher.urls, [authorizationUrl]);
+
+    final setupPostMatchers = adapter.history.where(
+      (h) =>
+          h.request.method?.name == 'POST' &&
+          h.request.route == PluginRepository.setupPath(installId),
+    );
+    expect(setupPostMatchers, isNotEmpty);
+  });
+
+  testWidgets('install plugin with completed setup does not navigate to setup',
+      (WidgetTester tester) async {
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    final installedMeet = nestedInstalledPlugin(
+      id: 'install-google-calendar-meet',
+      slug: 'google-calendar-meet',
+      name: 'Google Calendar Meet',
+      setupStatus: 'completed',
+    );
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedMeet,
+      }),
+      data: {'plugin_slug': 'google-calendar-meet'},
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PluginSetupPage), findsNothing);
+    expect(find.text('Plugin Setup'), findsNothing);
+    expect(find.text('Manage Plugins'), findsOneWidget);
   });
 
   testWidgets('uninstall with confirmation', (WidgetTester tester) async {

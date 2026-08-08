@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -8,8 +6,9 @@ import '../../core/router/app_router.dart';
 import 'assistant_controller.dart';
 import 'assistant_settings_provider.dart';
 import 'models/assistant_settings.dart';
-import 'services/active_listening_task_handler.dart';
+import 'services/active_listening_messages.dart';
 import 'services/foreground_listening_service.dart';
+import 'services/foreground_task_bridge.dart';
 import 'services/wake_word_engine.dart';
 
 enum ActiveListeningMode {
@@ -72,6 +71,10 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
 
   @override
   ActiveListeningState build() {
+    if (kIsWeb) {
+      return const ActiveListeningState();
+    }
+
     _foregroundServiceInstance ??= ref.read(foregroundListeningServiceProvider);
 
     final settings =
@@ -168,8 +171,9 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
 
     _startingMonitoring = true;
 
-    final started =
-        Platform.isAndroid ? await _startAndroidMonitoring() : await _startIosMonitoring();
+    final started = _isAndroid
+        ? await _startAndroidMonitoring()
+        : await _startIosMonitoring();
 
     _startingMonitoring = false;
 
@@ -215,7 +219,7 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
   }
 
   Future<void> _stopEngine() async {
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       _detachTaskDataCallback();
       await _foregroundServiceInstance?.stop();
     } else {
@@ -225,13 +229,13 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
 
   void _attachTaskDataCallback() {
     if (_taskDataCallbackRegistered) return;
-    FlutterForegroundTask.addTaskDataCallback(_onTaskData);
+    attachForegroundTaskDataCallback(_onTaskData);
     _taskDataCallbackRegistered = true;
   }
 
   void _detachTaskDataCallback() {
     if (!_taskDataCallbackRegistered) return;
-    FlutterForegroundTask.removeTaskDataCallback(_onTaskData);
+    detachForegroundTaskDataCallback(_onTaskData);
     _taskDataCallbackRegistered = false;
   }
 
@@ -255,14 +259,17 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
 
   Future<void> _handleWakeWordDetected() async {
     await _pauseMonitoring();
-    if (Platform.isAndroid) {
-      FlutterForegroundTask.launchApp();
+    if (_isAndroid) {
+      launchAppFromForegroundTask();
     }
     appRouter.goNamed(AppRoute.assistant.name);
 
     final assistant = ref.read(assistantControllerProvider.notifier);
     await assistant.startWakeWordCommandCapture();
   }
+
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 }
 
 final activeListeningControllerProvider =

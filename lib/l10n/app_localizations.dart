@@ -722,6 +722,18 @@ abstract class AppLocalizations {
   /// **'Some plugins need setup before they can be used.'**
   String get pluginsSetupIncompleteBanner;
 
+  /// No description provided for @assistantCompleteSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete setup'**
+  String get assistantCompleteSetup;
+
+  /// No description provided for @assistantManagePlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage plugins'**
+  String get assistantManagePlugins;
+
   /// No description provided for @openInBrowser.
   ///
   /// In en, this message translates to:
