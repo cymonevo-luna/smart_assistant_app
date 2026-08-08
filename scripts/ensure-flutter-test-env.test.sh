@@ -52,4 +52,26 @@ source "$LIB"
 serial="$(pick_running_emulator_serial)"
 [ "$serial" = "emulator-5554" ] || { echo "FAIL: expected emulator-5554 got $serial"; exit 1; }
 
+# --- offline emulator detection in --check-device ---
+
+cat > "$WORK/fake-sdk/platform-tools/adb" <<'EOF'
+#!/usr/bin/env bash
+if [ "$1" = "devices" ]; then
+  echo "List of devices attached"
+  echo "emulator-5554	offline"
+fi
+exit 0
+EOF
+chmod +x "$WORK/fake-sdk/platform-tools/adb"
+
+set +e
+offline_check_out="$(bash "$ENSURE" --check-device 2>&1)"
+offline_check_rc=$?
+set -e
+[ "$offline_check_rc" -eq 1 ] || { echo "FAIL: --check-device should exit 1 for offline emulator (got $offline_check_rc)"; exit 1; }
+printf '%s' "$offline_check_out" | grep -q "emulator-5554" \
+  || { echo "FAIL: --check-device output missing offline emulator serial"; exit 1; }
+printf '%s' "$offline_check_out" | grep -qi "offline" \
+  || { echo "FAIL: --check-device output missing offline mention"; exit 1; }
+
 echo "PASS ensure-flutter-test-env.test.sh"
