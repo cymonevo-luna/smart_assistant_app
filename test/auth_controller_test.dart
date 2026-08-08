@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
-import 'package:flutter_template/core/di/locator.dart';
-import 'package:flutter_template/core/network/api_client.dart';
-import 'package:flutter_template/core/storage/secure_storage_service.dart';
-import 'package:flutter_template/features/auth/auth_controller.dart';
+import 'package:smart_assistant_app/core/di/locator.dart';
+import 'package:smart_assistant_app/core/network/api_client.dart';
+import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
+import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 
 import 'helpers/auth_harness.dart';
 
