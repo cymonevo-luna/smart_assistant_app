@@ -24,6 +24,36 @@ abstract final class AppConfig {
       ? (dotenv.maybeGet('PICOVOICE_ACCESS_KEY') ?? '')
       : '';
 
+  /// Which on-device wake-word engine to run. Unknown/blank values fall back
+  /// to [WakeWordEngineKind.picovoice]. Build-time choice (not a user-facing
+  /// setting) — neither engine works without its own vendor credentials.
+  static WakeWordEngineKind get wakeWordEngine {
+    final value = dotenv.isInitialized ? dotenv.maybeGet('WAKE_WORD_ENGINE') : null;
+    return switch (value) {
+      'davoice' => WakeWordEngineKind.davoice,
+      _ => WakeWordEngineKind.picovoice,
+    };
+  }
+
+  /// License key from DaVoice (https://davoice.io/) for the flutter_wake_word
+  /// engine. Empty disables it even if selected via [wakeWordEngine].
+  static String get daVoiceLicenseKey => dotenv.isInitialized
+      ? (dotenv.maybeGet('DAVOICE_LICENSE_KEY') ?? '')
+      : '';
+
+  /// Detection confidence threshold (0-1) passed to flutter_wake_word.
+  static double get daVoiceWakeWordThreshold {
+    final raw = dotenv.isInitialized ? dotenv.maybeGet('DAVOICE_WAKE_WORD_THRESHOLD') : null;
+    return double.tryParse(raw ?? '') ?? 0.7;
+  }
+
+  /// Whether the currently selected [wakeWordEngine] has the config it needs
+  /// to actually start (vendor credentials present).
+  static bool get wakeWordEngineConfigured => switch (wakeWordEngine) {
+        WakeWordEngineKind.picovoice => picovoiceAccessKey.isNotEmpty,
+        WakeWordEngineKind.davoice => daVoiceLicenseKey.isNotEmpty,
+      };
+
   static AppEnv get environment {
     return switch (dotenv.maybeGet('APP_ENV')) {
       'prod' => AppEnv.prod,
@@ -37,3 +67,5 @@ abstract final class AppConfig {
 }
 
 enum AppEnv { dev, staging, prod }
+
+enum WakeWordEngineKind { picovoice, davoice }

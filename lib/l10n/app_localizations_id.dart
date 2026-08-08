@@ -36,6 +36,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get assistantSpeaking => 'Berbicara...';
 
   @override
+  String get assistantListening => 'Mendengarkan…';
+
+  @override
+  String get assistantTapToSpeak => 'Ketuk untuk berbicara';
+
+  @override
+  String get assistantWidgetSignInRequired =>
+      'Masuk untuk menggunakan widget asisten';
+
+  @override
   String get profile => 'Profil';
 
   @override

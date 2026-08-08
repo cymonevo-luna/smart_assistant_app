@@ -1,0 +1,6 @@
+PLACEHOLDER - not a real ONNX model.
+Replace this file with the real "Jarvis" wake-word model DaVoice sends after
+emailing info@davoice.io — see assets/wake_word/README.md.
+This placeholder only exists so `flutter build` doesn't fail on a missing
+declared asset; DaVoiceWakeWordEngine.start() will fail with a clear error if
+this hasn't been replaced yet (the native side can't parse it as a model).

@@ -376,6 +376,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
+  flutter_wake_word:
+    dependency: "direct main"
+    description:
+      name: flutter_wake_word
+      sha256: f32663992a7ed764033f9d7108402093d37c3aecb17278924c9858a191d9a3d2
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.44"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -509,6 +517,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  ios_microphone_permission:
+    dependency: transitive
+    description:
+      name: ios_microphone_permission
+      sha256: c6dfb73cd55c2473c5e86b158a90d2caacc9cb6c6b9bcfac3b1e53b2f18914df
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   jni:
     dependency: transitive
     description:

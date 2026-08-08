@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,14 +19,15 @@ import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
 
-// Active listening now runs on Picovoice Porcupine (see
-// wake_word_engine.dart) instead of a continuous speech-to-text transcript
-// match. Porcupine is a real native plugin (and, on Android, runs inside a
-// separate flutter_foreground_task isolate), so it can't be meaningfully
-// faked from a widget test — these tests cover the controller's gating
-// logic (enabled/disabled, missing configuration) rather than an actual
-// wake-word-to-API round trip. Verify that end-to-end on a device once
-// PICOVOICE_ACCESS_KEY is configured.
+// Active listening now runs on an on-device wake-word engine (Porcupine or
+// DaVoice, selected via WAKE_WORD_ENGINE — see wake_word_engine.dart)
+// instead of a continuous speech-to-text transcript match. Both are real
+// native plugins (and, on Android, run inside a separate
+// flutter_foreground_task isolate), so neither can be meaningfully faked
+// from a widget test — these tests cover the controller's gating logic
+// (enabled/disabled, missing configuration) rather than an actual
+// wake-word-to-API round trip. Verify that end-to-end on a device once the
+// selected engine's credentials are configured.
 
 class FakeForegroundListeningService implements ForegroundListeningService {
   bool running = false;
@@ -152,6 +154,29 @@ void main() {
       // No PICOVOICE_ACCESS_KEY is loaded in the test environment, so the
       // controller should refuse to start the wake-word engine rather than
       // spin up a foreground service with nothing to run.
+      await pumpHarness(
+        tester,
+        settings: const AssistantSettings(
+          wakeWord: 'Jarvis',
+          activeListeningEnabled: true,
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(foregroundService.running, isFalse);
+      expect(
+        find.byKey(const ValueKey('assistant_active_listening_chip')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'active listening on with WAKE_WORD_ENGINE=davoice but no license key stays idle',
+    (tester) async {
+      dotenv.loadFromString(envString: 'WAKE_WORD_ENGINE=davoice');
+      addTearDown(dotenv.clean);
+
       await pumpHarness(
         tester,
         settings: const AssistantSettings(

@@ -7,7 +7,9 @@
 # 2. Always runs the Flutter integration smoke test that mirrors the in-app flow.
 #
 # Usage (from repo root):
-#   cp .env.staging.example .env   # or .env.emulator.example for local docker QA
+#   cp .env.qa-local.example .env   # host-side local QA API (localhost:8080)
+#   cp .env.staging.example .env    # staging
+#   cp .env.emulator.example .env   # Android emulator against local docker QA
 #   scripts/plugin-setup-oauth-smoke-test.sh
 set -euo pipefail
 
