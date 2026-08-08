@@ -8,7 +8,9 @@ smoke-oauth-local: ## Run OAuth API + Flutter smoke test against local QA API
 	@test -f .env || cp .env.qa-local.example .env
 	@scripts/plugin-setup-oauth-smoke-test.sh
 
-ci: ## Run static analysis and unit/integration tests
+ci: ## Run static analysis, tests, and web release build
 	@scripts/ensure-flutter-test-env.sh --check-vm
+	@test -f .env || cp .env.example .env
 	@flutter analyze
 	@flutter test
+	@flutter build web --release

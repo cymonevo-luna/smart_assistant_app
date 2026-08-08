@@ -11,6 +11,7 @@ import '../../features/reminders/data/reminder_api_repository.dart';
 import '../../features/reminders/data/time_reminder_api_repository.dart';
 import '../../features/reminders/location_monitor_service.dart';
 import '../../features/reminders/reminder_registration_service.dart';
+import '../../features/reminders/services/location_reminder_notification_service.dart';
 import '../../features/reminders/services/reminder_notification_service.dart';
 import '../config/app_config.dart';
 import '../network/api_client.dart';
@@ -78,6 +79,9 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<TimeReminderApiRepository>(
     TimeReminderApiRepository(apiClient),
+  );
+  locator.registerSingleton<LocationReminderNotificationService>(
+    LocationReminderNotificationService(),
   );
   locator.registerSingleton<ReminderNotificationService>(
     ReminderNotificationService(

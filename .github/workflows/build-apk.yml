@@ -19,3 +19,14 @@ jobs:
       - run: flutter pub upgrade package_info_plus 2>/dev/null || true
       - run: flutter pub get
       - run: flutter build apk --release
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: test -f .env || cp .env.example .env
+      - run: flutter build web --release

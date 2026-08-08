@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +10,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/assistant/active_listening_controller.dart';
+import 'features/assistant/services/foreground_task_app_wrapper.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
 import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
@@ -65,7 +65,7 @@ class _AppState extends ConsumerState<App> {
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
-    return WithForegroundTask(
+    return wrapWithForegroundTask(
       child: ReminderSyncLifecycle(
         child: MaterialApp.router(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,

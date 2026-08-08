@@ -16,7 +16,7 @@ const _androidChannelName = 'Reminders';
 const _androidChannelDescription =
     'Local reminders synced from your Smart Assistant account.';
 
-/// Syncs reminder notifications from the API and schedules local alerts.
+/// Syncs time reminder notifications from the API and schedules local alerts.
 class ReminderNotificationService {
   ReminderNotificationService({
     required this._repository,

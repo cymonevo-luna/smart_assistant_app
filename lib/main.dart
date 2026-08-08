@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -10,35 +10,24 @@ import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/timezone/timezone_initializer.dart';
 import 'features/assistant/services/assistant_widget_init.dart';
+import 'features/assistant/services/foreground_task_init.dart';
+import 'features/reminders/services/location_reminder_notification_service.dart';
+import 'features/reminders/services/reminder_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initAssistantWidget();
 
-  FlutterForegroundTask.initCommunicationPort();
-
-  FlutterForegroundTask.init(
-    androidNotificationOptions: AndroidNotificationOptions(
-      channelId: 'active_listening',
-      channelName: 'Active listening',
-      channelDescription:
-          'Shown while the app listens for your wake word in the background.',
-      onlyAlertOnce: true,
-    ),
-    iosNotificationOptions: const IOSNotificationOptions(
-      showNotification: false,
-      playSound: false,
-    ),
-    foregroundTaskOptions: ForegroundTaskOptions(
-      eventAction: ForegroundTaskEventAction.nothing(),
-      autoRunOnBoot: false,
-    ),
-  );
+  if (!kIsWeb) {
+    await initForegroundTaskIfSupported();
+  }
 
   // Load environment config (.env) and register services.
   await AppConfig.load();
   await initializeLocalTimeZone();
   await setupLocator();
+  await locator<LocationReminderNotificationService>().initialize();
+  await locator<ReminderNotificationService>().initialize();
 
   // Each app sets its brand color here; users can still change it at runtime.
   final app = ProviderScope(
