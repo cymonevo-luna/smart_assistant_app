@@ -138,6 +138,20 @@ void main() {
       ..registerSingleton<AssistantRepository>(
         AssistantRepository(mocked.client),
       );
+    registerReminderTestServices(
+      locator,
+      prefs: prefs,
+      apiClient: mocked.client,
+    );
+
+    adapter.onGet(
+      '/api/v1/reminders',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <dynamic>[],
+      }),
+      queryParameters: {'status': 'pending'},
+    );
 
     adapter.onPost(
       '/api/v1/assistant/sessions',

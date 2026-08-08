@@ -29,6 +29,12 @@ class LocationService {
   /// the first platform check.
   bool get isLocationServiceEnabled => _locationServiceEnabled;
 
+  /// Returns whether when-in-use or always location permission is granted.
+  Future<bool> hasLocationPermission() async {
+    final permission = await _geolocator.checkPermission();
+    return _isPermissionGranted(permission);
+  }
+
   /// Requests when-in-use location permission. Does not request background
   /// access; use [requestBackgroundPermission] when needed later.
   Future<LocationPermissionStatus> requestPermission() async {

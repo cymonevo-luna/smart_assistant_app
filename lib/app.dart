@@ -15,6 +15,7 @@ import 'features/assistant/services/speech_to_text_service.dart';
 import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
+import 'features/reminders/reminder_registration_service.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root widget. Rebuilds [MaterialApp] whenever the theme or locale providers
@@ -33,7 +34,16 @@ class _AppState extends ConsumerState<App> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pluginSetupDeepLinkNotifierProvider);
       unawaited(locator<PluginSetupDeepLinkService>().startListening());
+      unawaited(_syncPendingReminders());
     });
+  }
+
+  Future<void> _syncPendingReminders() async {
+    try {
+      await locator<ReminderRegistrationService>().syncPendingFromApi();
+    } catch (_) {
+      // Offline or unauthenticated startup should not block the app shell.
+    }
   }
 
   @override
@@ -60,6 +70,12 @@ class _AppState extends ConsumerState<App> {
         ],
         routerConfig: appRouter,
         builder: (context, child) {
+          locator<ReminderRegistrationService>().onPermissionExplanationNeeded =
+              (message) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          };
           return AssistantListeningOverlayHost(
             child: child ?? const SizedBox.shrink(),
           );
