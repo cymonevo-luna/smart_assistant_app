@@ -152,5 +152,7 @@
   "pluginSetupFailed": "Setup could not be completed.",
   "pluginSetupRetry": "Try again",
   "pluginsSetupIncompleteBanner": "Some plugins need setup before they can be used.",
+  "assistantCompleteSetup": "Complete setup",
+  "assistantManagePlugins": "Manage plugins",
   "openInBrowser": "Open in browser"
 }
