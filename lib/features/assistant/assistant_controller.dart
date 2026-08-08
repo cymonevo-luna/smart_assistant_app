@@ -148,7 +148,11 @@ class AssistantController extends Notifier<AssistantUiState> {
     await _sendUserMessage(text);
   }
 
-  Future<void> _sendUserMessage(String text, {bool isRetry = false}) async {
+  Future<void> _sendUserMessage(
+    String text, {
+    bool isRetry = false,
+    String source = 'button',
+  }) async {
     if (state.sessionId == null) {
       await _ensureSession();
       if (state.sessionId == null) return;
@@ -168,7 +172,7 @@ class AssistantController extends Notifier<AssistantUiState> {
       final response = await _repo.sendMessage(
         sessionId: state.sessionId!,
         text: text,
-        source: 'button',
+        source: source,
       );
 
       final reply = response.reply;
@@ -229,7 +233,58 @@ class AssistantController extends Notifier<AssistantUiState> {
   Future<void> retryLastMessage() async {
     final text = state.pendingRetryText;
     if (text == null) return;
-    await _sendUserMessage(text, isRetry: true);
+    await _sendUserMessage(text, isRetry: true, source: 'button');
+  }
+
+  /// Sends a command captured after wake-word detection.
+  Future<void> sendWakeWordCommand(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    await _sendUserMessage(trimmed, source: 'wake_word');
+  }
+
+  /// Opens the assistant prompt and listens for a command after wake word only.
+  Future<void> startWakeWordCommandCapture() async {
+    if (state.interactionState != AssistantInteractionState.idle) return;
+
+    state = state.copyWith(
+      interactionState: AssistantInteractionState.listening,
+      clearPartialTranscript: true,
+      clearErrorMessage: true,
+    );
+
+    final started = await _stt.startListening(
+      onPartial: (transcript) {
+        state = state.copyWith(partialTranscript: transcript);
+      },
+      onFinal: (transcript) {
+        _handleWakeWordCommandTranscript(transcript);
+      },
+    );
+
+    if (!started) {
+      final message = _stt.error?.message ?? 'Could not start listening.';
+      state = state.copyWith(
+        interactionState: AssistantInteractionState.idle,
+        clearPartialTranscript: true,
+        errorMessage: message,
+      );
+    }
+  }
+
+  Future<void> _handleWakeWordCommandTranscript(String transcript) async {
+    final text = transcript.trim();
+    await _stt.stopListening();
+
+    if (text.isEmpty) {
+      state = state.copyWith(
+        interactionState: AssistantInteractionState.idle,
+        clearPartialTranscript: true,
+      );
+      return;
+    }
+
+    await _sendUserMessage(text, source: 'wake_word');
   }
 
   void clearError() {
