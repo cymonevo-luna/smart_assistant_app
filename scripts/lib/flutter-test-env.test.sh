@@ -115,7 +115,7 @@ rm -f "$ADB_TEST_STATE"
 set +e
 recover_out="$(
   export ADB_TEST_STATE="$WORK/adb-state"
-  run_with_fake_adb "$WORK/adb-recover" wait_for_adb_device_online emulator-5554 42 2>&1
+  run_with_fake_adb "$WORK/adb-recover" wait_for_adb_device_online emulator-5554 30 2>&1
 )"
 recover_rc=$?
 set -e

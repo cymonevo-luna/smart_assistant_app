@@ -131,7 +131,7 @@ wait_for_adb_device_online() {
   local state=""
 
   _flutter_test_env_log "Waiting for $serial adb online (timeout ${timeout}s)..."
-  while [ "$elapsed" -lt "$timeout" ]; do
+  while true; do
     state="$(adb_device_state "$serial")"
     if [ "$state" = "device" ]; then
       _flutter_test_env_log "$serial is adb online."
@@ -145,7 +145,16 @@ wait_for_adb_device_online() {
         "$(adb_bin)" kill-server 2>/dev/null || true
         "$(adb_bin)" start-server 2>/dev/null || true
         recovery_done=1
+        state="$(adb_device_state "$serial")"
+        if [ "$state" = "device" ]; then
+          _flutter_test_env_log "$serial is adb online."
+          return 0
+        fi
       fi
+    fi
+
+    if [ "$elapsed" -ge "$timeout" ]; then
+      break
     fi
 
     sleep 2
@@ -153,6 +162,11 @@ wait_for_adb_device_online() {
   done
 
   state="$(adb_device_state "$serial")"
+  if [ "$state" = "device" ]; then
+    _flutter_test_env_log "$serial is adb online."
+    return 0
+  fi
+
   _flutter_test_env_log "ERROR: Timed out waiting for $serial adb online (observed state: ${state:-none})."
   kvm_status_message >&2 || true
   _flutter_test_env_log "Run scripts/ensure-flutter-test-env.sh for a full environment report."
