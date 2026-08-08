@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/di/locator.dart';
 import '../../core/network/api_exception.dart';
+import '../../features/reminders/reminder_registration_service.dart';
 import '../../features/reminders/services/reminder_notification_service.dart';
 import 'data/assistant_repository.dart';
+import 'models/assistant_reply.dart';
 import 'models/assistant_session.dart';
 import 'models/chat_message.dart';
 import 'services/speech_to_text_service.dart';
@@ -69,12 +71,14 @@ class AssistantController extends Notifier<AssistantUiState> {
   late final SpeechToTextService _stt;
   late final TextToSpeechService _tts;
   late final AssistantRepository _repo;
+  late final ReminderRegistrationService _reminderRegistration;
 
   @override
   AssistantUiState build() {
     _stt = ref.read(speechToTextServiceProvider);
     _tts = ref.read(textToSpeechServiceProvider);
     _repo = locator<AssistantRepository>();
+    _reminderRegistration = locator<ReminderRegistrationService>();
 
     ref.onDispose(() {
       _tts.stop();
@@ -192,10 +196,15 @@ class AssistantController extends Notifier<AssistantUiState> {
         interactionState: AssistantInteractionState.speaking,
       );
 
-      final action = result.action;
-      if (action != null &&
-          action.pluginSlug == 'reminder' &&
-          action.status == 'success') {
+      if (reply.type == AssistantReplyType.actionResult && reply.action != null) {
+        unawaited(_reminderRegistration.handleActionResult(reply.action!));
+      }
+
+      final topLevelAction = result.action;
+      final replyAction = reply.action;
+      final reminderSlug = topLevelAction?.pluginSlug ?? replyAction?.pluginSlug;
+      final reminderStatus = topLevelAction?.status ?? replyAction?.status;
+      if (reminderSlug == 'reminder' && reminderStatus == 'success') {
         unawaited(locator<ReminderNotificationService>().syncReminders());
       }
 

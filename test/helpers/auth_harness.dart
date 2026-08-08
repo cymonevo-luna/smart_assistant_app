@@ -1,6 +1,13 @@
+import 'package:get_it/get_it.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
-import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
+import 'package:smart_assistant_app/core/storage/preferences_service.dart';
+import 'package:smart_assistant_app/features/location/location_service.dart';
+import 'package:smart_assistant_app/features/reminders/data/reminder_api_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/location_monitor_service.dart';
+import 'package:smart_assistant_app/features/reminders/reminder_registration_service.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 
 /// In-memory [SecureStorageService] for tests: overrides the primitive
 /// read/write/delete so no platform channel (Keychain / EncryptedSharedPrefs)
@@ -27,4 +34,28 @@ class FakeSecureStorage extends SecureStorageService {
   final client = ApiClient(baseUrl: 'https://api.test');
   final adapter = DioAdapter(dio: client.raw);
   return (client: client, adapter: adapter);
+}
+
+/// Registers reminder-related services required by [App] and [AssistantController].
+void registerReminderTestServices(
+  GetIt getIt, {
+  required PreferencesService prefs,
+  required ApiClient apiClient,
+}) {
+  final reminderRepository = LocationReminderRepository(prefs);
+  getIt
+    ..registerSingleton<LocationService>(LocationService())
+    ..registerSingleton<LocationReminderRepository>(reminderRepository)
+    ..registerSingleton<ReminderApiRepository>(
+      ReminderApiRepository(apiClient),
+    )
+    ..registerSingleton<LocationMonitorService>(StubLocationMonitorService())
+    ..registerSingleton<ReminderRegistrationService>(
+      ReminderRegistrationService(
+        reminderRepository: reminderRepository,
+        reminderApiRepository: getIt<ReminderApiRepository>(),
+        locationService: getIt<LocationService>(),
+        locationMonitorService: getIt<LocationMonitorService>(),
+      ),
+    );
 }

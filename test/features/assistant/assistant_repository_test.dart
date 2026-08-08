@@ -87,4 +87,48 @@ void main() {
     expect(response.response.reply.text, 'Done');
     expect(response.response.reply.type.name, 'text');
   });
+
+  test('sendMessage parses action_result reply with action payload', () async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions/sess-1/messages',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'reply': {
+            'type': 'action_result',
+            'text': 'Reminder set.',
+            'action': {
+              'plugin_slug': 'set-reminder',
+              'status': 'success',
+              'payload': {
+                'reminder_id': 'rem-api-1',
+                'title': 'Home',
+                'location_mode': 'exact',
+                'latitude': 37.7749,
+                'longitude': -122.4194,
+                'radius_meters': 150,
+              },
+            },
+          },
+          'session_status': 'active',
+        },
+      }),
+      data: {
+        'text': 'Remind me at home',
+        'source': 'button',
+      },
+    );
+
+    final response = await locator<AssistantRepository>().sendMessage(
+      sessionId: 'sess-1',
+      text: 'Remind me at home',
+      source: 'button',
+    );
+
+    expect(response.response.reply.type.name, 'actionResult');
+    expect(response.response.reply.text, 'Reminder set.');
+    expect(response.response.reply.action?.pluginSlug, 'set-reminder');
+    expect(response.response.reply.action?.status, 'success');
+    expect(response.response.reply.action?.payload?['reminder_id'], 'rem-api-1');
+  });
 }
