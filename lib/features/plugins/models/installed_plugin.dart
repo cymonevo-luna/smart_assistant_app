@@ -17,5 +17,23 @@ abstract class InstalledPlugin with _$InstalledPlugin {
   }) = _InstalledPlugin;
 
   factory InstalledPlugin.fromJson(Map<String, dynamic> json) =>
-      _$InstalledPluginFromJson(json);
+      _$InstalledPluginFromJson(_normalizeInstalledPluginJson(json));
+}
+
+Map<String, dynamic> _normalizeInstalledPluginJson(Map<String, dynamic> json) {
+  final plugin = json['plugin'];
+  if (plugin is Map<String, dynamic>) {
+    return {
+      'id': json['id'],
+      'slug': plugin['slug'],
+      'name': plugin['name'],
+      'description': plugin['description'] as String? ?? '',
+      'enabled': json['enabled'],
+      'setup_status': json['setup_status'],
+    };
+  }
+  return {
+    ...json,
+    'description': json['description'] as String? ?? '',
+  };
 }

@@ -275,9 +275,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupCompleted => 'Ready';
 
   @override
+  String get setupFailed => 'Setup failed';
+
+  @override
   String get pluginSetup => 'Plugin Setup';
 
   @override
-  String get pluginSetupComingSoon =>
-      'Plugin setup will be available in a future update.';
+  String get pluginSetupInstructions =>
+      'Connect your Google account so this plugin can access your calendar and related services.';
+
+  @override
+  String get connectGoogleAccount => 'Connect Google Account';
+
+  @override
+  String get pluginSetupWaiting => 'Waiting for authorization…';
+
+  @override
+  String get pluginSetupSuccess =>
+      'Setup complete! This plugin is ready to use.';
+
+  @override
+  String get pluginSetupFailed => 'Setup could not be completed.';
+
+  @override
+  String get pluginSetupRetry => 'Try again';
+
+  @override
+  String get pluginsSetupIncompleteBanner =>
+      'Some plugins need setup before they can be used.';
+
+  @override
+  String get openInBrowser => 'Open in browser';
 }

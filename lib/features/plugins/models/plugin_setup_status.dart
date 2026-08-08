@@ -7,4 +7,6 @@ enum PluginSetupStatus {
   inProgress,
   @JsonValue('completed')
   completed,
+  @JsonValue('failed')
+  failed,
 }

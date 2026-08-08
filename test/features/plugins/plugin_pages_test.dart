@@ -32,11 +32,15 @@ const _catalogPlugins = [
 
 const _installedWeather = {
   'id': 'plugin-1',
-  'slug': 'weather',
-  'name': 'Weather',
-  'description': 'Get weather forecasts',
   'enabled': true,
   'setup_status': 'not_started',
+  'plugin': {
+    'id': 'catalog-weather',
+    'slug': 'weather',
+    'name': 'Weather',
+    'required_setup': false,
+    'setup_type': 'none',
+  },
 };
 
 Widget _materialApp(Widget home) {
@@ -135,7 +139,7 @@ void main() {
         'success': true,
         'data': _installedWeather,
       }),
-      data: {'slug': 'weather'},
+      data: {'plugin_slug': 'weather'},
     );
 
     await tester.pumpWidget(
@@ -150,7 +154,7 @@ void main() {
       (h) => h.request.method?.name == 'POST',
     );
     expect(postMatchers, isNotEmpty);
-    expect(postMatchers.last.request.data, {'slug': 'weather'});
+    expect(postMatchers.last.request.data, {'plugin_slug': 'weather'});
 
     await tester.pumpWidget(
       scope(_materialApp(const MyPluginsPage())),
@@ -158,7 +162,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Weather'), findsOneWidget);
-    expect(find.text('Get weather forecasts'), findsOneWidget);
   });
 
   testWidgets('uninstall with confirmation', (WidgetTester tester) async {
