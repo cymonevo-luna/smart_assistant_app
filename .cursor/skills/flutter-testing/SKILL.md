@@ -76,6 +76,13 @@ flutter test integration_test/ -d "$DEVICE"
 2. If no emulator is available and Tier 2 is not strictly required, **skip**
    device tests, say so explicitly, and rely on Tier 1.
 
+For **active-listening FGS notification** verification (QA TC5/TC6), use the
+host-side script `scripts/verify-active-listening-notification.sh` after the
+shared emulator is running. It installs the debug APK, toggles active listening
+via shared preferences (or documented UI fallback), and polls `adb shell dumpsys
+notification` until the `active_listening` channel notification appears and
+then disappears — no manual dumpsys interpretation required.
+
 ### Forbidden during agent runs
 
 - Installing Flutter or the Android SDK
