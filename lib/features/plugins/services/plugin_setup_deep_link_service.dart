@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 
+import 'plugin_setup_oauth_callback.dart';
+
 /// Deep-link callback for plugin OAuth completion.
 ///
 /// URI format: `smartassistant://plugin-setup/complete?status=success|failed`
@@ -48,18 +50,10 @@ class PluginSetupDeepLinkService {
   }
 
   void handleUri(Uri uri) {
-    if (uri.scheme != scheme || uri.host != host || uri.path != path) {
-      return;
-    }
+    final event = eventFromUri(uri);
+    if (event == null) return;
 
-    final status = switch (uri.queryParameters['status']) {
-      'success' => PluginSetupDeepLinkStatus.success,
-      'failed' => PluginSetupDeepLinkStatus.failed,
-      _ => null,
-    };
-    if (status == null) return;
-
-    _events.add(PluginSetupDeepLinkEvent(status: status));
+    _events.add(event);
   }
 
   void dispose() {

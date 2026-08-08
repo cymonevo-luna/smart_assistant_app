@@ -191,6 +191,7 @@ class AssistantController extends Notifier<AssistantUiState> {
             text: reply.text,
             isUser: false,
             replyType: reply.type,
+            action: reply.action,
           ),
         ],
         interactionState: AssistantInteractionState.speaking,

@@ -105,6 +105,8 @@
   "pluginSetupFailed": "Setup tidak dapat diselesaikan.",
   "pluginSetupRetry": "Coba lagi",
   "pluginsSetupIncompleteBanner": "Beberapa plugin perlu disetup sebelum dapat digunakan.",
+  "assistantCompleteSetup": "Selesaikan setup",
+  "assistantManagePlugins": "Kelola plugin",
   "openInBrowser": "Buka di browser",
   "reminderNotificationsTitle": "Notifikasi pengingat",
   "reminderNotificationsDescription": "Notifikasi pengingat aktif saat plugin Reminder terpasang. Aplikasi menyinkronkan pengingat dari akunmu dan menampilkan peringatan lokal pada waktu yang dijadwalkan.",

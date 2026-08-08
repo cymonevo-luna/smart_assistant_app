@@ -13,6 +13,7 @@ import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
 import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
+import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
@@ -168,6 +169,75 @@ void main() {
 
     expect(find.text('Weather'), findsOneWidget);
     expect(find.text('Get weather forecasts'), findsOneWidget);
+  });
+
+  testWidgets('install plugin with incomplete setup navigates to PluginSetupPage',
+      (WidgetTester tester) async {
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    final installedMeet = nestedInstalledPlugin(
+      id: 'install-google-calendar-meet',
+      slug: 'google-calendar-meet',
+      name: 'Google Calendar Meet',
+      setupStatus: 'not_started',
+    );
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedMeet,
+      }),
+      data: {'plugin_slug': 'google-calendar-meet'},
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plugin Setup'), findsOneWidget);
+    expect(find.byType(PluginSetupPage), findsOneWidget);
+    expect(
+      tester.widget<PluginSetupPage>(find.byType(PluginSetupPage)).pluginId,
+      'install-google-calendar-meet',
+    );
+  });
+
+  testWidgets('install plugin with completed setup does not navigate to setup',
+      (WidgetTester tester) async {
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    final installedMeet = nestedInstalledPlugin(
+      id: 'install-google-calendar-meet',
+      slug: 'google-calendar-meet',
+      name: 'Google Calendar Meet',
+      setupStatus: 'completed',
+    );
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedMeet,
+      }),
+      data: {'plugin_slug': 'google-calendar-meet'},
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PluginSetupPage), findsNothing);
+    expect(find.text('Plugin Setup'), findsNothing);
+    expect(find.text('Manage Plugins'), findsOneWidget);
   });
 
   testWidgets('uninstall with confirmation', (WidgetTester tester) async {

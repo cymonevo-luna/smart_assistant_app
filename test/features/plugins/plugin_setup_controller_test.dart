@@ -14,6 +14,7 @@ import 'package:smart_assistant_app/features/plugins/plugin_setup_provider.dart'
 import 'package:smart_assistant_app/features/plugins/plugins_provider.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
+import 'package:smart_assistant_app/features/plugins/services/plugin_setup_oauth_callback.dart';
 
 import '../../helpers/auth_harness.dart';
 import '../../helpers/plugin_test_data.dart';
@@ -112,7 +113,26 @@ void main() {
     expect(events.first.status, PluginSetupDeepLinkStatus.success);
   });
 
-  test('installed plugins refresh fetches again', () async {
+  test('eventFromUri parses OAuth callback URIs', () {
+    expect(
+      isPluginSetupOAuthCallback(
+        Uri.parse('smartassistant://plugin-setup/complete?status=success'),
+      ),
+      isTrue,
+    );
+    expect(
+      eventFromUri(
+        Uri.parse('smartassistant://plugin-setup/complete?status=failed'),
+      )?.status,
+      PluginSetupDeepLinkStatus.failed,
+    );
+    expect(
+      isPluginSetupOAuthCallback(Uri.parse('https://example.com/callback')),
+      isFalse,
+    );
+  });
+
+  test('deep link completes setup when controller is unbound', () async {
     adapter.onGet(
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
@@ -121,25 +141,51 @@ void main() {
         'meta': {'page': 1, 'per_page': 20, 'total': 0},
       }),
     );
-    var fetchCount = 0;
     adapter.onGet(
       PluginRepository.installedPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': [
+          {
+            ...Map<String, dynamic>.from(_installedCalendar),
+            'setup_status': 'in_progress',
+          },
+        ],
+      }),
+    );
+    var statusPollCount = 0;
+    adapter.onGet(
+      '${PluginRepository.setupPath('plugin-calendar')}/status',
       (server) => server.replyCallback(200, (request) {
-        fetchCount++;
+        statusPollCount++;
         return {
           'success': true,
-          'data': [_installedCalendar],
+          'data': {
+            'setup_status':
+                statusPollCount < 2 ? 'in_progress' : 'completed',
+          },
         };
       }),
     );
 
-    final repo = locator<PluginRepository>();
-    await repo.listInstalled();
-    await repo.listInstalled();
-    expect(fetchCount, 2);
+    final container = createContainer();
+    addTearDown(container.dispose);
+    await container.read(installedPluginsProvider.future);
+    final notifier = container.read(pluginSetupControllerProvider.notifier);
+
+    await notifier.handleDeepLink(
+      const PluginSetupDeepLinkEvent(status: PluginSetupDeepLinkStatus.success),
+    );
+
+    expect(statusPollCount, greaterThanOrEqualTo(1));
+    expect(
+      container.read(pluginSetupControllerProvider).phase,
+      PluginSetupPhase.completed,
+    );
+    notifier.retry();
   });
 
-  test('deep link bootstrap refreshes installed plugins', () async {
+  test('installed plugins refresh fetches again', () async {
     adapter.onGet(
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
