@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/di/locator.dart';
 import '../../features/assistant/pages/assistant_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
 import '../../features/plugins/pages/manage_plugins_page.dart';
 import '../../features/plugins/pages/plugin_setup_page.dart';
+import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
+import '../../features/plugins/services/plugin_setup_oauth_callback.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/reminders/pages/reminder_notifications_page.dart';
 import '../../features/settings/settings_page.dart';
@@ -39,6 +42,13 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoute.splash.path,
+  redirect: (context, state) {
+    if (isPluginSetupOAuthCallback(state.uri)) {
+      locator<PluginSetupDeepLinkService>().handleUri(state.uri);
+      return AppRoute.managePlugins.path;
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: AppRoute.splash.path,

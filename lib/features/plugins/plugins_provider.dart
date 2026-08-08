@@ -76,7 +76,7 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
     state = await AsyncValue.guard(_loadInstalledWithDescriptions);
   }
 
-  Future<bool> install(String slug) async {
+  Future<InstalledPlugin?> install(String slug) async {
     try {
       final installed = _enrichInstalled(await _repo.install(slug));
       final current = state.asData?.value ?? [];
@@ -84,9 +84,9 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
           current.where((plugin) => plugin.slug != slug).toList();
       state = AsyncData([...withoutDuplicate, installed]);
       ref.invalidate(pluginCatalogProvider);
-      return true;
+      return installed;
     } on ApiException {
-      return false;
+      return null;
     }
   }
 

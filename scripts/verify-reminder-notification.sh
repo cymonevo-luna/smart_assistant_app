@@ -70,6 +70,8 @@ resolve_device() {
   resolve_android_sdk || die "Android SDK missing at ${ANDROID_HOME:-unset}"
 
   if [ -n "${DEVICE:-}" ]; then
+    wait_for_adb_device_online "$DEVICE" 420 \
+      || die "Device $DEVICE did not come adb online"
     if ! emulator_boot_completed "$DEVICE"; then
       log "Device $DEVICE is not fully booted; waiting before install..."
       wait_for_emulator_boot "$DEVICE" 300 || die "Emulator $DEVICE did not finish booting"
@@ -80,21 +82,28 @@ resolve_device() {
 
   DEVICE="$(pick_running_emulator_serial || true)"
   if [ -z "$DEVICE" ]; then
-    DEVICE="$(pick_any_emulator_serial || true)"
-    if [ -n "$DEVICE" ]; then
-      log "Found $DEVICE before boot completed; waiting..."
-      wait_for_emulator_boot "$DEVICE" 300 \
-        || die "Emulator $DEVICE did not finish booting"
-      export DEVICE
-      return 0
-    fi
-    DEVICE="$("$(adb_bin)" devices 2>/dev/null | awk '/^[[:space:]]*[^[:space:]]+[[:space:]]+device$/ { print $1; exit }')"
+    DEVICE="$(pick_emulator_serial || true)"
   fi
-
   if [ -z "$DEVICE" ]; then
-    die "No adb device in 'device' state. Run scripts/ensure-flutter-test-env.sh and scripts/start-shared-emulator.sh first."
+    log "No running emulator found; starting shared emulator..."
+  fi
+  if [ -z "$DEVICE" ]; then
+    local start_out start_rc=0
+    start_out="$("$SCRIPT_DIR/start-shared-emulator.sh" 2>&1)" || start_rc=$?
+    DEVICE="$(printf '%s\n' "$start_out" | awk '/^emulator-[0-9]+$/ { print; exit }')"
+    if [ -z "$DEVICE" ]; then
+      printf '%s\n' "$start_out" >&2
+      die "No adb device in 'device' state. Run scripts/ensure-flutter-test-env.sh and scripts/start-shared-emulator.sh first."
+    fi
+    if [ "$start_rc" -ne 0 ]; then
+      die "Failed to start shared emulator (exit $start_rc). Run scripts/ensure-flutter-test-env.sh and scripts/start-shared-emulator.sh first."
+    fi
+    export DEVICE
+    return 0
   fi
 
+  wait_for_adb_device_online "$DEVICE" 420 \
+    || die "Emulator $DEVICE did not come adb online"
   if ! emulator_boot_completed "$DEVICE"; then
     log "Waiting for $DEVICE to finish booting before install..."
     wait_for_emulator_boot "$DEVICE" 300 || die "Emulator $DEVICE did not finish booting"

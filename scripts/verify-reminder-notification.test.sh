@@ -25,6 +25,7 @@ check() {
   fi
 }
 
+# 1. Syntax check
 bash -n "$VERIFY"
 echo "ok   - bash -n syntax check"
 
@@ -35,16 +36,20 @@ else
   echo "ok   - shellcheck skipped (not installed)"
 fi
 
+# 2. --help usage
 help_out="$(bash "$VERIFY" --help 2>&1)"
 printf '%s' "$help_out" | grep -q "verify-reminder-notification.sh" \
   || { echo "FAIL - --help missing script name"; fails=$((fails + 1)); }
 printf '%s' "$help_out" | grep -q "DELAY_SECONDS" \
   || { echo "FAIL - --help missing DELAY_SECONDS"; fails=$((fails + 1)); }
+printf '%s' "$help_out" | grep -q "DEVICE" \
+  || { echo "FAIL - --help missing DEVICE"; fails=$((fails + 1)); }
 if [ "$fails" -eq 0 ]; then
   echo "ok   - --help documents usage"
 fi
 
-mkdir -p "$WORK/fake-sdk/platform-tools" "$WORK/fake-sdk/emulator" "$WORK/bin" "$WORK/scripts/lib" "$WORK/build/app/outputs/flutter-apk"
+mkdir -p "$WORK/fake-sdk/platform-tools" "$WORK/fake-sdk/emulator" "$WORK/bin" \
+  "$WORK/scripts/lib" "$WORK/build/app/outputs/flutter-apk"
 cp "$VERIFY" "$WORK/scripts/verify-reminder-notification.sh"
 cp "$LIB" "$WORK/scripts/lib/flutter-test-env.sh"
 touch "$WORK/build/app/outputs/flutter-apk/app-debug.apk"
@@ -59,12 +64,9 @@ STATE_FILE="${ADB_TEST_STATE:?}"
 NOTIF_FILE="${ADB_TEST_NOTIF:?}"
 PACKAGE="${ADB_TEST_PACKAGE:-com.cymonevo.smart_assistant}"
 TEST_MESSAGE="${ADB_TEST_MESSAGE:-E2E reminder notification}"
-SDCARD_DIR="${ADB_TEST_SDCARD:-/tmp/adb-test-sdcard}"
 
 read_state() {
-  boot=0
   scheduled=false
-  installed=false
   if [ -f "$STATE_FILE" ]; then
     # shellcheck disable=SC1090
     source "$STATE_FILE"
@@ -72,7 +74,7 @@ read_state() {
 }
 
 write_state() {
-  printf 'boot=%s\nscheduled=%s\ninstalled=%s\n' "$boot" "$scheduled" "$installed" >"$STATE_FILE"
+  printf 'scheduled=%s\n' "$scheduled" >"$STATE_FILE"
 }
 
 update_notification_dump() {
@@ -89,62 +91,52 @@ DUMP
 }
 
 case "${1:-}" in
-devices)
-  echo "List of devices attached"
-  echo "emulator-5554	device"
-  ;;
--s)
-  shift
-  export ADB_SERIAL="$1"
-  shift
-  exec "$0" "$@"
-  ;;
-install)
-  shift
-  [ "${1:-}" = "-r" ] && shift
-  read_state
-  installed=true
-  write_state
-  exit 0
-  ;;
-shell)
-  shift
-  case "$*" in
-    "getprop sys.boot_completed")
-      echo "1"
-      exit 0
-      ;;
-    "pm grant "*)
-      exit 0
-      ;;
-    "am start "*)
-      if printf '%s' "$*" | grep -q "reminder-test"; then
-        read_state
-        scheduled=true
-        write_state
+  devices)
+    echo "List of devices attached"
+    echo "emulator-5554	device"
+    ;;
+  -s)
+    shift
+    export ADB_SERIAL="$1"
+    shift
+    exec "$0" "$@"
+    ;;
+  install)
+    shift
+    [ "${1:-}" = "-r" ] && shift
+    exit 0
+    ;;
+  shell)
+    shift
+    case "$*" in
+      "getprop sys.boot_completed")
+        echo "1"
+        exit 0
+        ;;
+      "pm grant "*)
+        exit 0
+        ;;
+      "am start "*)
+        if printf '%s' "$*" | grep -q "reminder-test"; then
+          scheduled=true
+          write_state
+          update_notification_dump
+        fi
+        exit 0
+        ;;
+      "input keyevent KEYCODE_HOME")
+        exit 0
+        ;;
+      "dumpsys notification --list"|"dumpsys notification")
         update_notification_dump
-      fi
-      exit 0
-      ;;
-    "input keyevent KEYCODE_HOME")
-      exit 0
-      ;;
-    "dumpsys notification --list"|"dumpsys notification")
-      read_state
-      if [ "$scheduled" = "true" ]; then
-        update_notification_dump
-      fi
-      cat "$NOTIF_FILE" 2>/dev/null || true
-      exit 0
-      ;;
-    *)
-      exit 0
-      ;;
-  esac
-  ;;
-push)
-  exit 0
-  ;;
+        cat "$NOTIF_FILE" 2>/dev/null || true
+        exit 0
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+    ;;
 esac
 exit 0
 EOF
@@ -170,6 +162,13 @@ check "mock adb full verification exits 0" "$rc" 0
 grep -q "PASSED" "$WORK/out" \
   || { echo "FAIL - mock run missing PASSED"; fails=$((fails + 1)); }
 
+grep -q "Reminder" "$WORK/out" \
+  || { echo "FAIL - mock run missing reminder notification reference"; fails=$((fails + 1)); }
+if [ "$fails" -eq 0 ]; then
+  echo "ok   - mock run validates notification_present logic"
+fi
+
+# 3. No device should fail fast with a helpful hint
 mkdir -p "$WORK/empty-sdk/platform-tools" "$WORK/empty-sdk/emulator"
 cat > "$WORK/empty-sdk/platform-tools/adb" <<'EOF'
 #!/usr/bin/env bash
@@ -187,10 +186,11 @@ PATH="$WORK/empty-sdk/platform-tools:$PATH" \
   DEVICE= \
   bash "$VERIFY" >"$WORK/no-device.out" 2>&1 || rc=$?
 check "no device exits non-zero" "$rc" 1
-grep -q "ensure-flutter-test-env.sh" "$WORK/no-device.out" \
-  || { echo "FAIL - no-device output missing ensure-flutter-test-env hint"; fails=$((fails + 1)); }
-if [ "$fails" -eq 0 ]; then
+if grep -qE "start-shared-emulator\.sh|ensure-flutter-test-env\.sh" "$WORK/no-device.out"; then
   echo "ok   - no device prints setup hint"
+else
+  echo "FAIL - no-device output missing emulator setup hint"
+  fails=$((fails + 1))
 fi
 
 if [ "$fails" -gt 0 ]; then

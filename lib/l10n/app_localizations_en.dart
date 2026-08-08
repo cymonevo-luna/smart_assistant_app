@@ -341,6 +341,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some plugins need setup before they can be used.';
 
   @override
+  String get assistantCompleteSetup => 'Complete setup';
+
+  @override
+  String get assistantManagePlugins => 'Manage plugins';
+
+  @override
   String get openInBrowser => 'Open in browser';
 
   @override

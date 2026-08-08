@@ -128,6 +128,22 @@ class PluginSetupController extends Notifier<PluginSetupState> {
   }
 
   Future<void> handleDeepLink(PluginSetupDeepLinkEvent event) async {
+    if (_pluginId == null) {
+      final pluginId = await _resolveInProgressPluginId();
+      if (pluginId == null) {
+        await ref.read(installedPluginsProvider.notifier).refresh();
+        if (event.status == PluginSetupDeepLinkStatus.failed) {
+          state = state.copyWith(
+            phase: PluginSetupPhase.failed,
+            setupError: state.setupError ?? 'Setup was not completed.',
+          );
+        }
+        return;
+      }
+      _pluginId = pluginId;
+      _listenForDeepLinks();
+    }
+
     if (event.status == PluginSetupDeepLinkStatus.failed) {
       _stopPolling();
       state = state.copyWith(
@@ -154,6 +170,16 @@ class PluginSetupController extends Notifier<PluginSetupState> {
     _deepLinkSubscription ??= _deepLinks.events.listen((event) {
       unawaited(handleDeepLink(event));
     });
+  }
+
+  Future<String?> _resolveInProgressPluginId() async {
+    final plugins = await ref.read(installedPluginsProvider.future);
+    for (final plugin in plugins) {
+      if (plugin.setupStatus == PluginSetupStatus.inProgress) {
+        return plugin.id;
+      }
+    }
+    return null;
   }
 
   Future<void> _startPolling() async {
