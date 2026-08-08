@@ -1,6 +1,7 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import '../../../core/config/app_config.dart';
+import 'active_listening_messages.dart';
 import 'wake_word_engine.dart';
 
 /// Entry point for the background isolate flutter_foreground_task spawns.
@@ -11,9 +12,6 @@ import 'wake_word_engine.dart';
 void startActiveListeningTask() {
   FlutterForegroundTask.setTaskHandler(ActiveListeningTaskHandler());
 }
-
-/// Message sent to the main isolate when the wake word fires.
-const String wakeWordDetectedMessage = 'wake_word_detected';
 
 class ActiveListeningTaskHandler extends TaskHandler {
   WakeWordEngine? _engine;

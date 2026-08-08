@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// App-level view of device location permission state.
@@ -133,14 +133,14 @@ class LocationService {
   }
 
   LocationSettings _locationSettings(Duration interval) {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         intervalDuration: interval,
       );
     }
 
-    if (Platform.isIOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.high,
         activityType: ActivityType.other,

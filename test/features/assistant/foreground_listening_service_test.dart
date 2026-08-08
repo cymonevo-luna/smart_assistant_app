@@ -1,7 +1,7 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:smart_assistant_app/features/assistant/services/foreground_listening_service.dart';
+import 'package:smart_assistant_app/features/assistant/services/foreground_listening_service_io.dart';
 import 'package:smart_assistant_app/features/assistant/services/foreground_task_client.dart';
 
 class FakeForegroundTaskClient implements ForegroundTaskClient {

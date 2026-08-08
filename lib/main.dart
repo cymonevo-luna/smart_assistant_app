@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -9,30 +9,15 @@ import 'core/di/locator.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/assistant/services/assistant_widget_init.dart';
+import 'features/assistant/services/foreground_task_init.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initAssistantWidget();
 
-  FlutterForegroundTask.initCommunicationPort();
-
-  FlutterForegroundTask.init(
-    androidNotificationOptions: AndroidNotificationOptions(
-      channelId: 'active_listening',
-      channelName: 'Active listening',
-      channelDescription:
-          'Shown while the app listens for your wake word in the background.',
-      onlyAlertOnce: true,
-    ),
-    iosNotificationOptions: const IOSNotificationOptions(
-      showNotification: false,
-      playSound: false,
-    ),
-    foregroundTaskOptions: ForegroundTaskOptions(
-      eventAction: ForegroundTaskEventAction.nothing(),
-      autoRunOnBoot: false,
-    ),
-  );
+  if (!kIsWeb) {
+    await initForegroundTaskIfSupported();
+  }
 
   // Load environment config (.env) and register services.
   await AppConfig.load();
