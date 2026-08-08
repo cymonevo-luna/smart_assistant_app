@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/time_reminder_api_repository.dart';
 import 'package:smart_assistant_app/features/reminders/models/reminder.dart';
 
 import '../../helpers/auth_harness.dart';
@@ -22,14 +22,14 @@ void main() {
     locator
       ..registerSingleton<PreferencesService>(prefs)
       ..registerSingleton<ApiClient>(mocked.client)
-      ..registerSingleton<ReminderRepository>(
-        ReminderRepository(mocked.client),
+      ..registerSingleton<TimeReminderApiRepository>(
+        TimeReminderApiRepository(mocked.client),
       );
   });
 
   test('listReminders parses reminder JSON with remind_at DateTime', () async {
     adapter.onGet(
-      ReminderRepository.remindersPath,
+      TimeReminderApiRepository.remindersPath,
       (server) => server.reply(200, {
         'success': true,
         'data': [
@@ -44,7 +44,7 @@ void main() {
       queryParameters: {'filter': 'all'},
     );
 
-    final reminders = await locator<ReminderRepository>().listReminders();
+    final reminders = await locator<TimeReminderApiRepository>().listReminders();
 
     expect(reminders, hasLength(1));
     expect(reminders.first.id, 'rem-1');
@@ -62,11 +62,11 @@ void main() {
 
   test('markDelivered posts to delivered endpoint', () async {
     adapter.onPost(
-      '${ReminderRepository.remindersPath}/rem-1/delivered',
+      '${TimeReminderApiRepository.remindersPath}/rem-1/delivered',
       (server) => server.reply(200, {'success': true}),
     );
 
-    await locator<ReminderRepository>().markDelivered('rem-1');
+    await locator<TimeReminderApiRepository>().markDelivered('rem-1');
 
     expect(adapter.history.where((h) => h.request.method?.name == 'POST'), isNotEmpty);
   });

@@ -5,7 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
-import '../data/reminder_repository.dart';
+import '../data/time_reminder_api_repository.dart';
 import '../models/reminder.dart';
 import 'local_notifications_client.dart';
 import 'reminder_notification_permission_client.dart';

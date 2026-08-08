@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/time_reminder_api_repository.dart';
 import 'package:smart_assistant_app/features/reminders/models/reminder.dart';
 import 'package:smart_assistant_app/features/reminders/services/local_notifications_client.dart';
 import 'package:smart_assistant_app/features/reminders/services/reminder_notification_permission_client.dart';
@@ -32,17 +32,24 @@ class FakeReminderDataSource implements ReminderDataSource {
 
 class FakeReminderNotificationPermissionClient
     implements ReminderNotificationPermissionClient {
+  FakeReminderNotificationPermissionClient({this.granted = true});
+
+  final bool granted;
+
   @override
-  Future<bool> ensureGranted() async => true;
+  Future<bool> ensureGranted() async => granted;
 }
 
 class FakeLocalNotificationsClient implements LocalNotificationsClient {
   final List<Map<String, Object?>> zonedScheduleCalls = [];
   final List<Map<String, Object?>> showCalls = [];
+  final List<int> cancelCalls = [];
   List<PendingNotificationRequest> pendingRequests = const [];
 
   @override
-  Future<void> cancel(int id) async {}
+  Future<void> cancel(int id) async {
+    cancelCalls.add(id);
+  }
 
   @override
   Future<bool?> initialize({
@@ -151,6 +158,80 @@ void main() {
     expect(notifications.showCalls, hasLength(1));
     expect(notifications.showCalls.single['body'], 'Server reminder');
     expect(repository.deliveredIds, ['rem-due-1']);
+  });
+
+  test('syncReminders does not schedule past pending reminder', () async {
+    repository.reminders = [
+      Reminder(
+        id: 'past-rem',
+        message: 'Already due',
+        remindAt: DateTime.now().toUtc().subtract(const Duration(minutes: 5)),
+        status: ReminderStatus.pending,
+      ),
+    ];
+
+    await service.syncReminders();
+
+    expect(notifications.zonedScheduleCalls, isEmpty);
+  });
+
+  test('syncReminders does not schedule cancelled reminder', () async {
+    repository.reminders = [
+      Reminder(
+        id: 'cancelled-rem',
+        message: 'No longer needed',
+        remindAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+        status: ReminderStatus.cancelled,
+      ),
+    ];
+
+    await service.syncReminders();
+
+    expect(notifications.zonedScheduleCalls, isEmpty);
+  });
+
+  test('syncReminders cancels stale pending notification request', () async {
+    const reminderId = 'stale-rem';
+    final notificationId = reminderNotificationId(reminderId);
+    notifications.pendingRequests = [
+      PendingNotificationRequest(notificationId, 'Reminder', 'Stale body', null),
+    ];
+    repository.reminders = [
+      Reminder(
+        id: reminderId,
+        message: 'No longer needed',
+        remindAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+        status: ReminderStatus.cancelled,
+      ),
+    ];
+
+    await service.syncReminders();
+
+    expect(notifications.cancelCalls, [notificationId]);
+    expect(notifications.zonedScheduleCalls, isEmpty);
+  });
+
+  test('syncReminders skips sync when permission denied', () async {
+    service = ReminderNotificationService(
+      repository: repository,
+      notificationsClient: notifications,
+      permissionClient: FakeReminderNotificationPermissionClient(granted: false),
+      isMobile: true,
+      onNotificationTap: () {},
+    );
+    repository.reminders = [
+      Reminder(
+        id: 'future-rem',
+        message: 'Should not schedule',
+        remindAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+        status: ReminderStatus.pending,
+      ),
+    ];
+
+    await service.syncReminders();
+
+    expect(notifications.zonedScheduleCalls, isEmpty);
+    expect(notifications.showCalls, isEmpty);
   });
 
   test('scheduleTestNotification schedules a future local notification',

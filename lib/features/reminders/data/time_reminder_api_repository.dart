@@ -9,8 +9,9 @@ abstract class ReminderDataSource {
   Future<void> markDelivered(String reminderId);
 }
 
-class ReminderRepository implements ReminderDataSource {
-  ReminderRepository(this._api);
+/// Fetches time reminders and notification delivery state from the API.
+class TimeReminderApiRepository implements ReminderDataSource {
+  TimeReminderApiRepository(this._api);
 
   final ApiClient _api;
 
