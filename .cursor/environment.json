@@ -5,5 +5,5 @@
     "context": ".."
   },
   "user": "ubuntu",
-  "install": "flutter pub get"
+  "install": "export PATH=\"/opt/flutter/bin:$HOME/Android/Sdk/cmdline-tools/latest/bin:$HOME/Android/Sdk/platform-tools:$HOME/Android/Sdk/emulator:$PATH\"\nexport ANDROID_HOME=\"$HOME/Android/Sdk\"\nexport ANDROID_SDK_ROOT=\"$ANDROID_HOME\"\nflutter pub get"
 }
