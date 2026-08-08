@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 import '../../features/assistant/data/assistant_settings_repository.dart';
+import '../../features/plugins/data/plugin_repository.dart';
 import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../storage/preferences_service.dart';
@@ -34,5 +35,8 @@ Future<void> setupLocator() async {
   locator.registerSingleton<ApiClient>(apiClient);
   locator.registerSingleton<AssistantSettingsRepository>(
     AssistantSettingsRepository(apiClient, prefs),
+  );
+  locator.registerSingleton<PluginRepository>(
+    PluginRepository(apiClient),
   );
 }

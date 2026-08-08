@@ -5,6 +5,9 @@ import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
 import '../../features/placeholder/coming_soon_page.dart';
+import '../../features/plugins/pages/my_plugins_page.dart';
+import '../../features/plugins/pages/plugin_setup_page.dart';
+import '../../features/plugins/pages/plugin_store_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/showcase/showcase_page.dart';
@@ -23,6 +26,9 @@ enum AppRoute {
   messages('/messages'),
   profile('/profile'),
   settings('/settings'),
+  pluginStore('/plugins/store'),
+  myPlugins('/plugins'),
+  pluginSetup('/plugins/:id/setup'),
   details('/details');
 
   const AppRoute(this.path);
@@ -124,6 +130,26 @@ final GoRouter appRouter = GoRouter(
       name: AppRoute.settings.name,
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: AppRoute.pluginStore.path,
+      name: AppRoute.pluginStore.name,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const PluginStorePage(),
+    ),
+    GoRoute(
+      path: AppRoute.myPlugins.path,
+      name: AppRoute.myPlugins.name,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const MyPluginsPage(),
+    ),
+    GoRoute(
+      path: AppRoute.pluginSetup.path,
+      name: AppRoute.pluginSetup.name,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => PluginSetupPage(
+        pluginId: state.pathParameters['id']!,
+      ),
     ),
     GoRoute(
       path: AppRoute.details.path,

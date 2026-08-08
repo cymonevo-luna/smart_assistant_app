@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/localization/locale_provider.dart';
+import '../../core/router/app_router.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_tokens.dart';
@@ -63,6 +65,15 @@ class SettingsPage extends ConsumerWidget {
           ),
           const VGap(AppSpacing.lg),
           AppSectionHeader(title: l10n.assistant),
+          const VGap(AppSpacing.sm),
+          AppCard(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: AppListTile(
+              icon: Icons.extension_outlined,
+              title: l10n.plugins,
+              onTap: () => context.pushNamed(AppRoute.myPlugins.name),
+            ),
+          ),
           const VGap(AppSpacing.sm),
           const AssistantSettingsSection(),
           const VGap(AppSpacing.lg),

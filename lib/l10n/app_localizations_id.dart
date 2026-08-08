@@ -197,4 +197,82 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get assistantSettingsSaveFailed =>
       'Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.';
+
+  @override
+  String get plugins => 'Plugin';
+
+  @override
+  String get pluginStore => 'Toko Plugin';
+
+  @override
+  String get myPlugins => 'Plugin Saya';
+
+  @override
+  String get install => 'Pasang';
+
+  @override
+  String get uninstall => 'Copot';
+
+  @override
+  String get cancel => 'Batal';
+
+  @override
+  String get retry => 'Coba lagi';
+
+  @override
+  String get enabled => 'Aktif';
+
+  @override
+  String get pluginStoreEmpty => 'Belum ada plugin tersedia.';
+
+  @override
+  String get noPluginsInstalled => 'Belum ada plugin terpasang';
+
+  @override
+  String get noPluginsInstalledSubtitle =>
+      'Jelajahi toko plugin untuk memperluas asistenmu.';
+
+  @override
+  String get browsePluginStore => 'Jelajahi Toko Plugin';
+
+  @override
+  String get pluginLoadFailed =>
+      'Tidak dapat memuat plugin. Silakan coba lagi.';
+
+  @override
+  String get pluginActionFailed => 'Terjadi kesalahan. Silakan coba lagi.';
+
+  @override
+  String pluginInstalled(String name) {
+    return '$name terpasang';
+  }
+
+  @override
+  String pluginUninstalled(String name) {
+    return '$name dicopot';
+  }
+
+  @override
+  String get uninstallPlugin => 'Copot plugin?';
+
+  @override
+  String uninstallPluginConfirm(String name) {
+    return 'Hapus $name dari asistenmu?';
+  }
+
+  @override
+  String get setupNotStarted => 'Perlu setup';
+
+  @override
+  String get setupInProgress => 'Setup berjalan';
+
+  @override
+  String get setupCompleted => 'Siap';
+
+  @override
+  String get pluginSetup => 'Setup Plugin';
+
+  @override
+  String get pluginSetupComingSoon =>
+      'Setup plugin akan tersedia di pembaruan mendatang.';
 }

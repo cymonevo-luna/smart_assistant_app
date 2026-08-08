@@ -73,5 +73,49 @@
   "activeListening": "Active listening",
   "activeListeningSubtitle": "Keeps the microphone active to detect your wake word. May increase battery usage.",
   "wakeWordRequired": "Wake word cannot be empty",
-  "assistantSettingsSaveFailed": "Could not save settings. Showing cached values."
+  "assistantSettingsSaveFailed": "Could not save settings. Showing cached values.",
+  "plugins": "Plugins",
+  "pluginStore": "Plugin Store",
+  "myPlugins": "My Plugins",
+  "install": "Install",
+  "uninstall": "Uninstall",
+  "cancel": "Cancel",
+  "retry": "Retry",
+  "enabled": "Enabled",
+  "pluginStoreEmpty": "No plugins available yet.",
+  "noPluginsInstalled": "No plugins installed",
+  "noPluginsInstalledSubtitle": "Browse the plugin store to extend your assistant.",
+  "browsePluginStore": "Browse Plugin Store",
+  "pluginLoadFailed": "Could not load plugins. Please try again.",
+  "pluginActionFailed": "Something went wrong. Please try again.",
+  "pluginInstalled": "{name} installed",
+  "@pluginInstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginUninstalled": "{name} uninstalled",
+  "@pluginUninstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "uninstallPlugin": "Uninstall plugin?",
+  "uninstallPluginConfirm": "Remove {name} from your assistant?",
+  "@uninstallPluginConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "setupNotStarted": "Setup needed",
+  "setupInProgress": "Setup in progress",
+  "setupCompleted": "Ready",
+  "pluginSetup": "Plugin Setup",
+  "pluginSetupComingSoon": "Plugin setup will be available in a future update."
 }
