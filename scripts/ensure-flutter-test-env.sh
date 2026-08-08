@@ -39,12 +39,26 @@ require_android_sdk() {
 }
 
 report_emulators() {
-  local serials
-  serials="$(list_running_emulator_serials | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
-  if [ -n "$serials" ]; then
-    _flutter_test_env_log "Running emulators: $serials"
+  local device_serials offline_serials all_serials
+  device_serials="$(list_running_emulator_serials | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+  offline_serials="$(list_offline_emulator_serials | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+  all_serials="$(list_emulator_serials | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+
+  if [ -n "$device_serials" ]; then
+    _flutter_test_env_log "Running emulators: $device_serials"
     return 0
   fi
+
+  if [ -n "$all_serials" ]; then
+    if [ -n "$offline_serials" ]; then
+      _flutter_test_env_log "ERROR: Emulator(s) adb offline: $offline_serials"
+    else
+      _flutter_test_env_log "ERROR: Emulator(s) present but not adb-ready: $all_serials"
+    fi
+    _flutter_test_env_log "Run scripts/start-shared-emulator.sh or restart adb (adb kill-server && adb start-server)."
+    return 1
+  fi
+
   _flutter_test_env_log "No running Android emulators."
   return 1
 }

@@ -31,8 +31,16 @@ resolve_android_sdk || {
   exit 1
 }
 
-existing="$(pick_running_emulator_serial || true)"
+existing="$(pick_emulator_serial || true)"
 if [ -n "$existing" ]; then
+  if ! wait_for_adb_device_online "$existing" 420; then
+    emu_pid="$(pgrep -f "emulator.*-avd ${SHARED_AVD}" | head -n1 || pgrep -f 'qemu-system' | head -n1 || true)"
+    if [ -n "$emu_pid" ] && kill -0 "$emu_pid" 2>/dev/null; then
+      _flutter_test_env_log "Killing emulator process $emu_pid after adb offline timeout."
+      kill "$emu_pid" 2>/dev/null || true
+    fi
+    exit 1
+  fi
   if emulator_boot_completed "$existing"; then
     record_shared_emulator "$(pgrep -f "emulator.*-avd ${SHARED_AVD}" | head -n1 || echo 0)" "$existing"
     echo "$existing"
@@ -47,7 +55,17 @@ if [ -n "$existing" ]; then
 fi
 
 if shared_emulator_pid_alive; then
+  tracked_pid="$(tr -d '\r\n' <"$LUNA_EMULATOR_PID_FILE")"
   serial="$(read_shared_emulator_serial || true)"
+  if [ -n "$serial" ]; then
+    if ! wait_for_adb_device_online "$serial" 420; then
+      if kill -0 "$tracked_pid" 2>/dev/null; then
+        _flutter_test_env_log "Killing tracked emulator process $tracked_pid after adb offline timeout."
+        kill "$tracked_pid" 2>/dev/null || true
+      fi
+      exit 1
+    fi
+  fi
   if [ -n "$serial" ] && emulator_boot_completed "$serial"; then
     echo "$serial"
     _flutter_test_env_log "Reusing tracked emulator: $serial"
@@ -92,13 +110,28 @@ record_shared_emulator "$emu_pid" ""
 
 serial=""
 for _ in $(seq 1 60); do
-  serial="$(pick_running_emulator_serial || true)"
+  serial="$(pick_emulator_serial || true)"
   [ -n "$serial" ] && break
+  if ! kill -0 "$emu_pid" 2>/dev/null; then
+    _flutter_test_env_log "ERROR: Emulator process (pid $emu_pid) exited before adb serial appeared."
+    exit 1
+  fi
   sleep 2
 done
 
 if [ -z "$serial" ]; then
   _flutter_test_env_log "ERROR: Emulator process started (pid $emu_pid) but no adb serial appeared."
+  if kill -0 "$emu_pid" 2>/dev/null; then
+    kill "$emu_pid" 2>/dev/null || true
+  fi
+  exit 1
+fi
+
+if ! wait_for_adb_device_online "$serial" 420; then
+  if kill -0 "$emu_pid" 2>/dev/null; then
+    _flutter_test_env_log "Killing emulator process $emu_pid after adb offline timeout."
+    kill "$emu_pid" 2>/dev/null || true
+  fi
   exit 1
 fi
 

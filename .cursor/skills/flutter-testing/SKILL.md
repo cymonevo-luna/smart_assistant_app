@@ -83,6 +83,15 @@ via shared preferences (or documented UI fallback), and polls `adb shell dumpsys
 notification` until the `active_listening` channel notification appears and
 then disappears — no manual dumpsys interpretation required.
 
+For **location reminder notification** verification (QA follow-up), use
+`scripts/verify-reminder-notification.sh` after `scripts/start-shared-emulator.sh`.
+It installs the debug APK, runs `integration_test/reminder_notification_test.dart`
+in the background, and polls `adb shell dumpsys notification` until the
+`location_reminders` channel notification with title **Location Reminder**
+appears. **Tier 2 is required** for this QA follow-up on a real device/emulator;
+when no emulator is available, run the Tier-1 fallback:
+`bash scripts/verify-reminder-notification.test.sh` (mock host test, no device).
+
 ### Forbidden during agent runs
 
 - Installing Flutter or the Android SDK

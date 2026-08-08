@@ -1,26 +1,18 @@
 #!/usr/bin/env bash
-# Verify scheduled reminder local notification delivery (QA E2E).
-#
-# Schedules a test notification via the debug deep link (no staging API or
-# assistant credentials required), backgrounds the app, and polls dumpsys until
-# the reminder notification appears.
+# Verify location-reminder local notification appears on Android emulator/device.
 #
 # Usage (from repo root):
 #   scripts/verify-reminder-notification.sh
 #   DEVICE=emulator-5554 scripts/verify-reminder-notification.sh
-#   DELAY_SECONDS=5 scripts/verify-reminder-notification.sh
 #
 # Env:
-#   DEVICE          adb serial (default: first device in `device` state)
-#   APK_PATH        apk to install (default: build/app/outputs/flutter-apk/app-debug.apk)
-#   PACKAGE         application id (default: com.cymonevo.smart_assistant)
-#   TEST_MESSAGE    notification body (default: E2E reminder notification)
-#   DELAY_SECONDS   seconds until notification fires (default: 5)
+#   DEVICE     adb serial (default: first device in `device` state)
+#   APK_PATH   apk to install (default: build/app/outputs/flutter-apk/app-debug.apk)
+#   PACKAGE    application id (default: com.cymonevo.smart_assistant)
 #
 # Prerequisites:
-#   - adb device/emulator in `device` state (see scripts/ensure-flutter-test-env.sh
-#     and scripts/start-shared-emulator.sh)
-#   - debuggable build (debug deep link is kDebugMode-only)
+#   - adb device/emulator in `device` state
+#   - Flutter SDK on PATH
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
@@ -31,13 +23,11 @@ source "$SCRIPT_DIR/lib/flutter-test-env.sh"
 
 : "${PACKAGE:=com.cymonevo.smart_assistant}"
 : "${APK_PATH:=$REPO_DIR/build/app/outputs/flutter-apk/app-debug.apk}"
-: "${TEST_MESSAGE:=E2E reminder notification}"
-: "${DELAY_SECONDS:=5}"
 
-NOTIFICATION_CHANNEL_ID="reminders"
-NOTIFICATION_TITLE="Reminder"
+NOTIFICATION_CHANNEL_ID="location_reminders"
+NOTIFICATION_TITLE="Location Reminder"
 POLL_INTERVAL_SEC=2
-POLL_TIMEOUT_SEC=60
+POLL_TIMEOUT_SEC=900
 
 log() { printf '>> %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
@@ -46,19 +36,14 @@ usage() {
   cat <<EOF
 Usage: scripts/verify-reminder-notification.sh [--help]
 
-Verify a scheduled reminder local notification appears after the debug deep link
-schedules it (no staging API credentials required).
+Build/install the debug APK, run integration_test/reminder_notification_test.dart
+on the device, and verify the location_reminders channel notification (title
+"Location Reminder") appears in dumpsys.
 
 Environment:
-  DEVICE          adb serial (default: first connected device in device state)
-  APK_PATH        apk to install (default: build/app/outputs/flutter-apk/app-debug.apk)
-  PACKAGE         application id (default: com.cymonevo.smart_assistant)
-  TEST_MESSAGE    notification body (default: E2E reminder notification)
-  DELAY_SECONDS   seconds until notification fires (default: 5)
-
-Examples:
-  scripts/verify-reminder-notification.sh
-  DEVICE=emulator-5554 DELAY_SECONDS=8 scripts/verify-reminder-notification.sh
+  DEVICE     adb serial (default: first connected device in device state)
+  APK_PATH   apk to install (default: build/app/outputs/flutter-apk/app-debug.apk)
+  PACKAGE    application id (default: com.cymonevo.smart_assistant)
 EOF
 }
 
@@ -79,7 +64,7 @@ resolve_device() {
   fi
 
   if [ -z "$DEVICE" ]; then
-    die "No adb device in 'device' state. Run scripts/ensure-flutter-test-env.sh and scripts/start-shared-emulator.sh first."
+    die "No adb device in 'device' state. Run scripts/start-shared-emulator.sh first."
   fi
 
   export DEVICE
@@ -109,29 +94,6 @@ grant_runtime_permissions() {
   adb_exec shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 }
 
-launch_app() {
-  log "Launching $PACKAGE"
-  adb_exec shell am start -n "$PACKAGE/.MainActivity" \
-    -a android.intent.action.MAIN \
-    -c android.intent.category.LAUNCHER >/dev/null
-}
-
-schedule_test_reminder() {
-  local encoded_message
-  encoded_message="$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$TEST_MESSAGE")"
-  local deep_link="smartassistant://debug/reminder-test?message=${encoded_message}&delay_seconds=${DELAY_SECONDS}"
-
-  log "Scheduling test reminder via deep link (delay=${DELAY_SECONDS}s): $deep_link"
-  adb_exec shell am start -a android.intent.action.VIEW \
-    -d "$deep_link" \
-    -n "$PACKAGE/.MainActivity" >/dev/null
-}
-
-background_app() {
-  log "Sending app to background"
-  adb_exec shell input keyevent KEYCODE_HOME
-}
-
 notification_dumpsys() {
   adb_exec shell dumpsys notification --list 2>/dev/null \
     || adb_exec shell dumpsys notification 2>/dev/null \
@@ -141,8 +103,7 @@ notification_dumpsys() {
 notification_present() {
   local dump="$1"
   printf '%s\n' "$dump" | grep -q "$PACKAGE" \
-    && printf '%s\n' "$dump" | grep -Eqi "$NOTIFICATION_CHANNEL_ID|${NOTIFICATION_TITLE// /[[:space:]]}" \
-    && printf '%s\n' "$dump" | grep -Fqi "$TEST_MESSAGE"
+    && printf '%s\n' "$dump" | grep -Eqi "$NOTIFICATION_CHANNEL_ID|${NOTIFICATION_TITLE// /[[:space:]]}"
 }
 
 wait_for_notification() {
@@ -151,14 +112,33 @@ wait_for_notification() {
   while [ "$elapsed" -lt "$POLL_TIMEOUT_SEC" ]; do
     dump="$(notification_dumpsys)"
     if notification_present "$dump"; then
-      log "Verified: reminder notification appeared with message '$TEST_MESSAGE'"
+      log "Verified: reminder notification visible (channel=$NOTIFICATION_CHANNEL_ID title='$NOTIFICATION_TITLE')"
       return 0
     fi
     sleep "$POLL_INTERVAL_SEC"
     elapsed=$((elapsed + POLL_INTERVAL_SEC))
   done
 
-  die "Timed out after ${POLL_TIMEOUT_SEC}s waiting for reminder notification (package=$PACKAGE channel=$NOTIFICATION_CHANNEL_ID title='$NOTIFICATION_TITLE' message='$TEST_MESSAGE')"
+  die "Timed out after ${POLL_TIMEOUT_SEC}s waiting for reminder notification"
+}
+
+run_integration_test() {
+  resolve_flutter_bin || die "Flutter not found"
+  log "Running reminder notification integration test on $DEVICE"
+  (
+    cd "$REPO_DIR"
+    "$FLUTTER_BIN" test integration_test/reminder_notification_test.dart -d "$DEVICE"
+  )
+}
+
+run_integration_test_async() {
+  resolve_flutter_bin || die "Flutter not found"
+  log "Running reminder notification integration test on $DEVICE (background)"
+  (
+    cd "$REPO_DIR"
+    "$FLUTTER_BIN" test integration_test/reminder_notification_test.dart -d "$DEVICE"
+  ) &
+  TEST_ASYNC_PID=$!
 }
 
 main() {
@@ -173,13 +153,13 @@ main() {
   ensure_apk
   install_apk
   grant_runtime_permissions
-  launch_app
-  sleep 3
-  schedule_test_reminder
-  background_app
-  wait_for_notification
-
-  log "Reminder notification E2E verification PASSED"
+  run_integration_test_async
+  wait_for_notification || {
+    kill "${TEST_ASYNC_PID:-}" 2>/dev/null || true
+    die "Reminder notification not visible during integration test"
+  }
+  wait "${TEST_ASYNC_PID:-}" || die "Integration test failed"
+  log "Reminder notification verification PASSED"
 }
 
 main "$@"

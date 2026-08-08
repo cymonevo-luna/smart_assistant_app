@@ -96,8 +96,68 @@ list_running_emulator_serials() {
   "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+device$/ { print $1 }'
 }
 
+list_offline_emulator_serials() {
+  "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+offline$/ { print $1 }'
+}
+
+list_emulator_serials() {
+  "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]/ { print $1 }'
+}
+
 pick_running_emulator_serial() {
   list_running_emulator_serials | head -n1
+}
+
+pick_emulator_serial() {
+  list_emulator_serials | head -n1
+}
+
+adb_device_state() {
+  local serial="$1"
+  local state=""
+  state="$("$(adb_bin)" devices 2>/dev/null | awk -v serial="$serial" '$1 == serial { print $2; exit }')"
+  case "$state" in
+    device | offline | authorizing) printf '%s' "$state" ;;
+    *) printf '' ;;
+  esac
+}
+
+wait_for_adb_device_online() {
+  local serial="$1"
+  local timeout="${2:-420}"
+  local elapsed=0
+  local offline_elapsed=0
+  local recovery_done=0
+  local state=""
+
+  _flutter_test_env_log "Waiting for $serial adb online (timeout ${timeout}s)..."
+  while [ "$elapsed" -lt "$timeout" ]; do
+    state="$(adb_device_state "$serial")"
+    if [ "$state" = "device" ]; then
+      _flutter_test_env_log "$serial is adb online."
+      return 0
+    fi
+
+    if [ "$state" = "offline" ]; then
+      offline_elapsed=$((offline_elapsed + 2))
+      if [ "$offline_elapsed" -ge 30 ] && [ "$recovery_done" -eq 0 ]; then
+        _flutter_test_env_log "$serial adb offline for ${offline_elapsed}s; restarting adb server..."
+        "$(adb_bin)" kill-server 2>/dev/null || true
+        "$(adb_bin)" start-server 2>/dev/null || true
+        recovery_done=1
+      fi
+    fi
+
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+
+  state="$(adb_device_state "$serial")"
+  _flutter_test_env_log "ERROR: Timed out waiting for $serial adb online (observed state: ${state:-none})."
+  kvm_status_message >&2 || true
+  _flutter_test_env_log "Run scripts/ensure-flutter-test-env.sh for a full environment report."
+  _flutter_test_env_log "If KVM is unavailable, fix host access: sudo usermod -aG kvm \"\$USER\" (then log out and back in)."
+  return 1
 }
 
 emulator_boot_completed() {
