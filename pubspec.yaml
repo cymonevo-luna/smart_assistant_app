@@ -57,6 +57,7 @@ dependencies:
   porcupine_flutter: ^4.0.0
   flutter_wake_word: ^0.0.44
   geolocator: ^13.0.0
+  home_widget: ^0.9.3
 
 dev_dependencies:
   flutter_test:
