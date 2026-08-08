@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="assistant_widget_label">Smart Assistant App</string>
+    <string name="assistant_widget_description">Tap to open the assistant</string>
+    <string name="assistant_widget_icon_description">Assistant microphone</string>
+</resources>
