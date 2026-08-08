@@ -25,6 +25,7 @@ class AssistantSettingsNotifier extends AsyncNotifier<AssistantSettings> {
   Future<bool> updateSettings({
     required String wakeWord,
     required bool activeListeningEnabled,
+    required int locationReminderThresholdMeters,
   }) async {
     final trimmed = wakeWord.trim();
     if (trimmed.isEmpty) return false;
@@ -33,6 +34,7 @@ class AssistantSettingsNotifier extends AsyncNotifier<AssistantSettings> {
       final updated = await _repo.updateSettings(
         wakeWord: trimmed,
         activeListeningEnabled: activeListeningEnabled,
+        locationReminderThresholdMeters: locationReminderThresholdMeters,
       );
       state = AsyncData(updated);
       return true;
@@ -48,6 +50,7 @@ class AssistantSettingsNotifier extends AsyncNotifier<AssistantSettings> {
     return updateSettings(
       wakeWord: wakeWord,
       activeListeningEnabled: current.activeListeningEnabled,
+      locationReminderThresholdMeters: current.locationReminderThresholdMeters,
     );
   }
 
@@ -56,6 +59,16 @@ class AssistantSettingsNotifier extends AsyncNotifier<AssistantSettings> {
     return updateSettings(
       wakeWord: current.wakeWord,
       activeListeningEnabled: enabled,
+      locationReminderThresholdMeters: current.locationReminderThresholdMeters,
+    );
+  }
+
+  Future<bool> setLocationReminderThreshold(int meters) {
+    final current = state.requireValue;
+    return updateSettings(
+      wakeWord: current.wakeWord,
+      activeListeningEnabled: current.activeListeningEnabled,
+      locationReminderThresholdMeters: meters,
     );
   }
 }

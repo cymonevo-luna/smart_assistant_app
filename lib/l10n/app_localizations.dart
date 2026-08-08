@@ -512,6 +512,18 @@ abstract class AppLocalizations {
   /// **'Could not save settings. Showing cached values.'**
   String get assistantSettingsSaveFailed;
 
+  /// No description provided for @locationReminderDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Location reminder distance'**
+  String get locationReminderDistance;
+
+  /// No description provided for @locationReminderDistanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters} m'**
+  String locationReminderDistanceMeters(int meters);
+
   /// No description provided for @plugins.
   ///
   /// In en, this message translates to:

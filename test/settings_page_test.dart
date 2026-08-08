@@ -72,6 +72,7 @@ void main() {
     const defaults = AssistantSettings(
       wakeWord: 'Jarvis',
       activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
     );
 
     await tester.pumpWidget(
@@ -90,6 +91,107 @@ void main() {
     final switchFinder = find.byKey(const ValueKey('assistant_active_listening'));
     expect(switchFinder, findsOneWidget);
     expect(tester.widget<Switch>(switchFinder).value, isFalse);
+    expect(find.text('100 m'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('location_reminder_threshold_slider')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('settings page renders threshold control', (WidgetTester tester) async {
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          assistantSettingsProvider.overrideWith(
+            () => _FakeAssistantSettingsNotifier(defaults),
+          ),
+        ],
+        child: _materialApp(const SettingsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('100 m'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('location_reminder_threshold_slider')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('threshold change calls API', (WidgetTester tester) async {
+    adapter
+      ..onGet(
+        '/api/v1/assistant/settings',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'wake_word': 'Jarvis',
+            'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 100,
+          },
+        }),
+      )
+      ..onPut(
+        '/api/v1/assistant/settings',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'wake_word': 'Jarvis',
+            'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 200,
+          },
+        }),
+        data: {
+          'wake_word': 'Jarvis',
+          'active_listening_enabled': false,
+          'location_reminder_threshold_meters': 200,
+        },
+      );
+
+    await tester.pumpWidget(
+      ProviderScope(child: _materialApp(const SettingsPage())),
+    );
+    await tester.pumpAndSettle();
+
+    final sliderFinder =
+        find.byKey(const ValueKey('location_reminder_threshold_slider'));
+    await tester.scrollUntilVisible(
+      sliderFinder,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final sliderBox = tester.getRect(sliderFinder);
+    final start = Offset(
+      sliderBox.left + sliderBox.width * 0.18,
+      sliderBox.center.dy,
+    );
+    final end = Offset(
+      sliderBox.left + sliderBox.width * 0.39,
+      sliderBox.center.dy,
+    );
+    await tester.dragFrom(start, end - start);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    final putMatchers = adapter.history.where(
+      (h) => h.request.method?.name == 'PUT',
+    );
+    expect(putMatchers, isNotEmpty);
+    final putRequest = putMatchers.last.request;
+    expect(putRequest.route, '/api/v1/assistant/settings');
+    expect(putRequest.data, {
+      'wake_word': 'Jarvis',
+      'active_listening_enabled': false,
+      'location_reminder_threshold_meters': 200,
+    });
   });
 
   testWidgets('update settings calls API', (WidgetTester tester) async {
@@ -101,6 +203,7 @@ void main() {
           'data': {
             'wake_word': 'Jarvis',
             'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 100,
           },
         }),
       )
@@ -111,11 +214,13 @@ void main() {
           'data': {
             'wake_word': 'Jarvis',
             'active_listening_enabled': true,
+            'location_reminder_threshold_meters': 100,
           },
         }),
         data: {
           'wake_word': 'Jarvis',
           'active_listening_enabled': true,
+          'location_reminder_threshold_meters': 100,
         },
       );
 
@@ -143,6 +248,7 @@ void main() {
     expect(putRequest.data, {
       'wake_word': 'Jarvis',
       'active_listening_enabled': true,
+      'location_reminder_threshold_meters': 100,
     });
   });
 
@@ -160,6 +266,7 @@ void main() {
         'data': {
           'wake_word': 'Jarvis',
           'active_listening_enabled': false,
+          'location_reminder_threshold_meters': 100,
         },
       }),
     );
@@ -177,6 +284,7 @@ void main() {
     const defaults = AssistantSettings(
       wakeWord: 'Jarvis',
       activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
     );
 
     adapter

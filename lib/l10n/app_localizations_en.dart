@@ -224,6 +224,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save settings. Showing cached values.';
 
   @override
+  String get locationReminderDistance => 'Location reminder distance';
+
+  @override
+  String locationReminderDistanceMeters(int meters) {
+    return '$meters m';
+  }
+
+  @override
   String get plugins => 'Plugins';
 
   @override
