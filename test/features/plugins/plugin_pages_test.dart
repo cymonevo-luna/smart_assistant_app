@@ -119,7 +119,7 @@ void main() {
         'success': true,
         'data': installedWeather,
       }),
-      data: {'slug': 'weather'},
+      data: {'plugin_slug': 'weather'},
     );
 
     await tester.pumpWidget(
@@ -134,7 +134,7 @@ void main() {
       (h) => h.request.method?.name == 'POST',
     );
     expect(postMatchers, isNotEmpty);
-    expect(postMatchers.last.request.data, {'slug': 'weather'});
+    expect(postMatchers.last.request.data, {'plugin_slug': 'weather'});
 
     await tester.pumpWidget(
       scope(_materialApp(const MyPluginsPage())),
