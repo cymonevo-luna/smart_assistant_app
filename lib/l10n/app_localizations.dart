@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'App Template'**
+  /// **'Smart Assistant App'**
   String get appTitle;
 
   /// No description provided for @appTagline.
@@ -433,6 +433,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords do not match'**
   String get passwordsDoNotMatch;
+
+  /// No description provided for @assistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get assistant;
+
+  /// No description provided for @wakeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake word'**
+  String get wakeWord;
+
+  /// No description provided for @activeListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Active listening'**
+  String get activeListening;
+
+  /// No description provided for @activeListeningSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the microphone active to detect your wake word. May increase battery usage.'**
+  String get activeListeningSubtitle;
+
+  /// No description provided for @wakeWordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake word cannot be empty'**
+  String get wakeWordRequired;
+
+  /// No description provided for @assistantSettingsSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save settings. Showing cached values.'**
+  String get assistantSettingsSaveFailed;
 }
 
 class _AppLocalizationsDelegate

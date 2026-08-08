@@ -48,4 +48,6 @@ abstract final class PrefKeys {
   static const String themeMode = 'theme_mode';
   static const String onboardingDone = 'onboarding_done';
   static const String locale = 'locale';
+  static const String assistantWakeWord = 'assistant_wake_word';
+  static const String assistantActiveListening = 'assistant_active_listening';
 }

@@ -67,5 +67,11 @@
   "fieldRequired": "This field is required",
   "invalidEmail": "Enter a valid email address",
   "passwordTooShort": "Password must be at least 6 characters",
-  "passwordsDoNotMatch": "Passwords do not match"
+  "passwordsDoNotMatch": "Passwords do not match",
+  "assistant": "Assistant",
+  "wakeWord": "Wake word",
+  "activeListening": "Active listening",
+  "activeListeningSubtitle": "Keeps the microphone active to detect your wake word. May increase battery usage.",
+  "wakeWordRequired": "Wake word cannot be empty",
+  "assistantSettingsSaveFailed": "Could not save settings. Showing cached values."
 }

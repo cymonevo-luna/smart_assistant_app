@@ -55,5 +55,11 @@
   "fieldRequired": "Bidang ini wajib diisi",
   "invalidEmail": "Masukkan alamat email yang valid",
   "passwordTooShort": "Kata sandi minimal 6 karakter",
-  "passwordsDoNotMatch": "Kata sandi tidak cocok"
+  "passwordsDoNotMatch": "Kata sandi tidak cocok",
+  "assistant": "Asisten",
+  "wakeWord": "Kata bangun",
+  "activeListening": "Dengarkan aktif",
+  "activeListeningSubtitle": "Menjaga mikrofon aktif untuk mendeteksi kata bangun. Dapat meningkatkan penggunaan battery.",
+  "wakeWordRequired": "Kata bangun tidak boleh kosong",
+  "assistantSettingsSaveFailed": "Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan."
 }

@@ -177,4 +177,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'Kata sandi tidak cocok';
+
+  @override
+  String get assistant => 'Asisten';
+
+  @override
+  String get wakeWord => 'Kata bangun';
+
+  @override
+  String get activeListening => 'Dengarkan aktif';
+
+  @override
+  String get activeListeningSubtitle =>
+      'Menjaga mikrofon aktif untuk mendeteksi kata bangun. Dapat meningkatkan penggunaan battery.';
+
+  @override
+  String get wakeWordRequired => 'Kata bangun tidak boleh kosong';
+
+  @override
+  String get assistantSettingsSaveFailed =>
+      'Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.';
 }
