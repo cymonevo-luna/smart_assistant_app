@@ -16,28 +16,7 @@ import 'package:smart_assistant_app/features/plugins/pages/plugin_store_page.dar
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
-
-const _catalogPlugins = [
-  {
-    'slug': 'weather',
-    'name': 'Weather',
-    'description': 'Get weather forecasts',
-  },
-  {
-    'slug': 'calendar',
-    'name': 'Calendar Sync',
-    'description': 'Sync your calendar events',
-  },
-];
-
-const _installedWeather = {
-  'id': 'plugin-1',
-  'slug': 'weather',
-  'name': 'Weather',
-  'description': 'Get weather forecasts',
-  'enabled': true,
-  'setup_status': 'not_started',
-};
+import '../../helpers/plugin_test_data.dart';
 
 Widget _materialApp(Widget home) {
   return MaterialApp(
@@ -81,7 +60,7 @@ void main() {
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': _catalogPlugins,
+        'data': catalogPlugins,
       }),
     );
   }
@@ -97,7 +76,13 @@ void main() {
   }
 
   testWidgets('catalog page lists plugins', (WidgetTester tester) async {
-    mockCatalog();
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': [catalogGoogleCalendarMeet],
+      }),
+    );
     mockInstalledEmpty();
 
     await tester.pumpWidget(
@@ -105,9 +90,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Weather'), findsOneWidget);
-    expect(find.text('Calendar Sync'), findsOneWidget);
-    expect(find.text('Install'), findsNWidgets(2));
+    expect(find.text('Google Meet Scheduler'), findsOneWidget);
+    expect(find.text('Install'), findsOneWidget);
   });
 
   testWidgets('install plugin success', (WidgetTester tester) async {
@@ -125,7 +109,7 @@ void main() {
         }
         return server.reply(200, {
           'success': true,
-          'data': [_installedWeather],
+          'data': [installedWeather],
         });
       },
     );
@@ -133,7 +117,7 @@ void main() {
       PluginRepository.installedPath,
       (server) => server.reply(201, {
         'success': true,
-        'data': _installedWeather,
+        'data': installedWeather,
       }),
       data: {'slug': 'weather'},
     );
@@ -166,7 +150,7 @@ void main() {
       PluginRepository.installedPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': [_installedWeather],
+        'data': [installedWeather],
       }),
     );
     adapter.onDelete(
@@ -204,7 +188,7 @@ void main() {
       PluginRepository.installedPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': [_installedWeather],
+        'data': [installedWeather],
       }),
     );
     adapter.onPatch(
@@ -212,7 +196,7 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          ..._installedWeather,
+          ...installedWeather,
           'enabled': false,
         },
       }),
