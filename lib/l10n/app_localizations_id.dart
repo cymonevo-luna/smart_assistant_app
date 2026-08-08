@@ -36,6 +36,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get assistantSpeaking => 'Berbicara...';
 
   @override
+  String get assistantListening => 'Mendengarkan…';
+
+  @override
+  String get assistantTapToSpeak => 'Ketuk untuk berbicara';
+
+  @override
+  String get assistantWidgetSignInRequired =>
+      'Masuk untuk menggunakan widget asisten';
+
+  @override
   String get profile => 'Profil';
 
   @override
@@ -214,7 +224,24 @@ class AppLocalizationsId extends AppLocalizations {
       'Tidak dapat menyimpan pengaturan. Menampilkan nilai yang tersimpan.';
 
   @override
+  String get locationReminderDistance => 'Jarak pengingat lokasi';
+
+  @override
+  String locationReminderDistanceMeters(int meters) {
+    return '$meters m';
+  }
+
+  @override
   String get plugins => 'Plugin';
+
+  @override
+  String get managePlugins => 'Kelola Plugin';
+
+  @override
+  String get pluginsInstalledTab => 'Terpasang';
+
+  @override
+  String get pluginsAvailableTab => 'Tersedia';
 
   @override
   String get pluginStore => 'Toko Plugin';

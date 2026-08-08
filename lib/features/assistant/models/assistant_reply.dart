@@ -16,10 +16,23 @@ enum AssistantReplyType {
 }
 
 @freezed
+abstract class AssistantAction with _$AssistantAction {
+  const factory AssistantAction({
+    @JsonKey(name: 'plugin_slug') String? pluginSlug,
+    String? status,
+    Map<String, dynamic>? payload,
+  }) = _AssistantAction;
+
+  factory AssistantAction.fromJson(Map<String, dynamic> json) =>
+      _$AssistantActionFromJson(json);
+}
+
+@freezed
 abstract class AssistantReply with _$AssistantReply {
   const factory AssistantReply({
     required AssistantReplyType type,
     required String text,
+    AssistantAction? action,
   }) = _AssistantReply;
 
   factory AssistantReply.fromJson(Map<String, dynamic> json) =>

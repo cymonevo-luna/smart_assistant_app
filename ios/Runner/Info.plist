@@ -35,6 +35,10 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location in the background to trigger location-based reminders when you arrive or leave a place.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to support location-based reminders while you are using the app.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app uses the microphone to capture your voice commands for the assistant.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

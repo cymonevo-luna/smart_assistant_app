@@ -36,6 +36,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assistantSpeaking => 'Speaking...';
 
   @override
+  String get assistantListening => 'Listening…';
+
+  @override
+  String get assistantTapToSpeak => 'Tap to speak';
+
+  @override
+  String get assistantWidgetSignInRequired =>
+      'Sign in to use the assistant widget';
+
+  @override
   String get profile => 'Profile';
 
   @override
@@ -214,7 +224,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save settings. Showing cached values.';
 
   @override
+  String get locationReminderDistance => 'Location reminder distance';
+
+  @override
+  String locationReminderDistanceMeters(int meters) {
+    return '$meters m';
+  }
+
+  @override
   String get plugins => 'Plugins';
+
+  @override
+  String get managePlugins => 'Manage Plugins';
+
+  @override
+  String get pluginsInstalledTab => 'Installed';
+
+  @override
+  String get pluginsAvailableTab => 'Available';
 
   @override
   String get pluginStore => 'Plugin Store';

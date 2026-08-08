@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,11 +15,23 @@ import 'package:smart_assistant_app/features/assistant/data/assistant_settings_r
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
-import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
 import 'package:smart_assistant_app/features/settings/settings_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import 'helpers/auth_harness.dart';
+import 'helpers/plugin_test_data.dart';
+
+Widget _routerApp() {
+  return MaterialApp.router(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    routerConfig: appRouter,
+  );
+}
 
 Widget _materialApp(Widget home) {
   return MaterialApp(
@@ -34,34 +45,9 @@ Widget _materialApp(Widget home) {
   );
 }
 
-Widget _routerApp(GoRouter router) {
-  return MaterialApp.router(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    routerConfig: router,
-  );
-}
-
-GoRouter _pluginsNavigationRouter() {
-  return GoRouter(
-    initialLocation: AppRoute.settings.path,
-    routes: [
-      GoRoute(
-        path: AppRoute.settings.path,
-        name: AppRoute.settings.name,
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: AppRoute.myPlugins.path,
-        name: AppRoute.myPlugins.name,
-        builder: (context, state) => const MyPluginsPage(),
-      ),
-    ],
-  );
+class _AuthenticatedAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 void main() {
@@ -86,6 +72,7 @@ void main() {
     const defaults = AssistantSettings(
       wakeWord: 'Jarvis',
       activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
     );
 
     await tester.pumpWidget(
@@ -104,6 +91,107 @@ void main() {
     final switchFinder = find.byKey(const ValueKey('assistant_active_listening'));
     expect(switchFinder, findsOneWidget);
     expect(tester.widget<Switch>(switchFinder).value, isFalse);
+    expect(find.text('100 m'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('location_reminder_threshold_slider')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('settings page renders threshold control', (WidgetTester tester) async {
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          assistantSettingsProvider.overrideWith(
+            () => _FakeAssistantSettingsNotifier(defaults),
+          ),
+        ],
+        child: _materialApp(const SettingsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('100 m'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('location_reminder_threshold_slider')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('threshold change calls API', (WidgetTester tester) async {
+    adapter
+      ..onGet(
+        '/api/v1/assistant/settings',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'wake_word': 'Jarvis',
+            'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 100,
+          },
+        }),
+      )
+      ..onPut(
+        '/api/v1/assistant/settings',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'wake_word': 'Jarvis',
+            'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 200,
+          },
+        }),
+        data: {
+          'wake_word': 'Jarvis',
+          'active_listening_enabled': false,
+          'location_reminder_threshold_meters': 200,
+        },
+      );
+
+    await tester.pumpWidget(
+      ProviderScope(child: _materialApp(const SettingsPage())),
+    );
+    await tester.pumpAndSettle();
+
+    final sliderFinder =
+        find.byKey(const ValueKey('location_reminder_threshold_slider'));
+    await tester.scrollUntilVisible(
+      sliderFinder,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final sliderBox = tester.getRect(sliderFinder);
+    final start = Offset(
+      sliderBox.left + sliderBox.width * 0.18,
+      sliderBox.center.dy,
+    );
+    final end = Offset(
+      sliderBox.left + sliderBox.width * 0.39,
+      sliderBox.center.dy,
+    );
+    await tester.dragFrom(start, end - start);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    final putMatchers = adapter.history.where(
+      (h) => h.request.method?.name == 'PUT',
+    );
+    expect(putMatchers, isNotEmpty);
+    final putRequest = putMatchers.last.request;
+    expect(putRequest.route, '/api/v1/assistant/settings');
+    expect(putRequest.data, {
+      'wake_word': 'Jarvis',
+      'active_listening_enabled': false,
+      'location_reminder_threshold_meters': 200,
+    });
   });
 
   testWidgets('update settings calls API', (WidgetTester tester) async {
@@ -115,6 +203,7 @@ void main() {
           'data': {
             'wake_word': 'Jarvis',
             'active_listening_enabled': false,
+            'location_reminder_threshold_meters': 100,
           },
         }),
       )
@@ -125,11 +214,13 @@ void main() {
           'data': {
             'wake_word': 'Jarvis',
             'active_listening_enabled': true,
+            'location_reminder_threshold_meters': 100,
           },
         }),
         data: {
           'wake_word': 'Jarvis',
           'active_listening_enabled': true,
+          'location_reminder_threshold_meters': 100,
         },
       );
 
@@ -157,6 +248,7 @@ void main() {
     expect(putRequest.data, {
       'wake_word': 'Jarvis',
       'active_listening_enabled': true,
+      'location_reminder_threshold_meters': 100,
     });
   });
 
@@ -174,6 +266,7 @@ void main() {
         'data': {
           'wake_word': 'Jarvis',
           'active_listening_enabled': false,
+          'location_reminder_threshold_meters': 100,
         },
       }),
     );
@@ -187,21 +280,20 @@ void main() {
     expect(field.enabled, isFalse);
   });
 
-  testWidgets('settings navigates to manage plugins', (WidgetTester tester) async {
-    locator.registerSingleton<PluginRepository>(PluginRepository(locator<ApiClient>()));
+  testWidgets('settings navigates to Manage Plugins', (WidgetTester tester) async {
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+      locationReminderThresholdMeters: 100,
+    );
 
     adapter
       ..onGet(
         PluginRepository.catalogPath,
         (server) => server.reply(200, {
           'success': true,
-          'data': [
-            {
-              'slug': 'weather',
-              'name': 'Weather',
-              'description': 'Get weather forecasts',
-            },
-          ],
+          'data': [catalogGoogleCalendarMeet],
+          'meta': {'page': 1, 'per_page': 20, 'total': 1},
         }),
       )
       ..onGet(
@@ -212,20 +304,21 @@ void main() {
         }),
       );
 
-    const defaults = AssistantSettings(
-      wakeWord: 'Jarvis',
-      activeListeningEnabled: false,
+    locator.registerSingleton<PluginRepository>(
+      PluginRepository(locator<ApiClient>()),
     );
+
+    appRouter.go(AppRoute.settings.path);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          authProvider.overrideWith(() => _AuthenticatedAuthController()),
+          authProvider.overrideWith(_AuthenticatedAuthController.new),
           assistantSettingsProvider.overrideWith(
             () => _FakeAssistantSettingsNotifier(defaults),
           ),
         ],
-        child: _routerApp(_pluginsNavigationRouter()),
+        child: _routerApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -240,13 +333,8 @@ void main() {
     await tester.tap(pluginsTile);
     await tester.pumpAndSettle();
 
-    expect(find.text('My Plugins'), findsOneWidget);
+    expect(find.text('Manage Plugins'), findsOneWidget);
   });
-}
-
-class _AuthenticatedAuthController extends AuthController {
-  @override
-  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 class _FakeAssistantSettingsNotifier extends AssistantSettingsNotifier {

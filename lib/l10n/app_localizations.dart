@@ -152,6 +152,24 @@ abstract class AppLocalizations {
   /// **'Speaking...'**
   String get assistantSpeaking;
 
+  /// No description provided for @assistantListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get assistantListening;
+
+  /// No description provided for @assistantTapToSpeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to speak'**
+  String get assistantTapToSpeak;
+
+  /// No description provided for @assistantWidgetSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use the assistant widget'**
+  String get assistantWidgetSignInRequired;
+
   /// No description provided for @profile.
   ///
   /// In en, this message translates to:
@@ -494,11 +512,41 @@ abstract class AppLocalizations {
   /// **'Could not save settings. Showing cached values.'**
   String get assistantSettingsSaveFailed;
 
+  /// No description provided for @locationReminderDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Location reminder distance'**
+  String get locationReminderDistance;
+
+  /// No description provided for @locationReminderDistanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters} m'**
+  String locationReminderDistanceMeters(int meters);
+
   /// No description provided for @plugins.
   ///
   /// In en, this message translates to:
   /// **'Plugins'**
   String get plugins;
+
+  /// No description provided for @managePlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Plugins'**
+  String get managePlugins;
+
+  /// No description provided for @pluginsInstalledTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginsInstalledTab;
+
+  /// No description provided for @pluginsAvailableTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get pluginsAvailableTab;
 
   /// No description provided for @pluginStore.
   ///

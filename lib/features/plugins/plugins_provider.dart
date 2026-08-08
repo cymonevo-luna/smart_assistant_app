@@ -30,19 +30,59 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
   Future<List<InstalledPlugin>> build() async {
     final auth = ref.watch(authProvider);
     if (!auth.isAuthenticated) return [];
-    return _repo.listInstalled();
+    return _loadInstalledWithDescriptions();
+  }
+
+  Future<List<InstalledPlugin>> _loadInstalledWithDescriptions() async {
+    final installed = await _repo.listInstalled();
+    final catalog = await _catalogDescriptions();
+    return _mergeDescriptions(installed, catalog);
+  }
+
+  Future<Map<String, String>> _catalogDescriptions() async {
+    try {
+      final catalog = await _repo.listCatalog();
+      return {for (final item in catalog) item.slug: item.description};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  List<InstalledPlugin> _mergeDescriptions(
+    List<InstalledPlugin> installed,
+    Map<String, String> descriptionsBySlug,
+  ) {
+    return installed
+        .map(
+          (plugin) => plugin.description.isNotEmpty
+              ? plugin
+              : plugin.copyWith(
+                  description: descriptionsBySlug[plugin.slug] ?? '',
+                ),
+        )
+        .toList();
+  }
+
+  InstalledPlugin _enrichInstalled(InstalledPlugin plugin) {
+    final catalog = ref.read(pluginCatalogProvider).asData?.value;
+    if (catalog == null) return plugin;
+    return _mergeDescriptions([plugin], {
+      for (final item in catalog) item.slug: item.description,
+    }).single;
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _repo.listInstalled());
+    state = await AsyncValue.guard(_loadInstalledWithDescriptions);
   }
 
   Future<bool> install(String slug) async {
     try {
-      final installed = await _repo.install(slug);
+      final installed = _enrichInstalled(await _repo.install(slug));
       final current = state.asData?.value ?? [];
-      state = AsyncData([...current, installed]);
+      final withoutDuplicate =
+          current.where((plugin) => plugin.slug != slug).toList();
+      state = AsyncData([...withoutDuplicate, installed]);
       ref.invalidate(pluginCatalogProvider);
       return true;
     } on ApiException {
@@ -79,7 +119,9 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
     );
 
     try {
-      final updated = await _repo.setEnabled(pluginId, enabled);
+      final updated = _enrichInstalled(
+        await _repo.setEnabled(pluginId, enabled),
+      );
       state = AsyncData(
         previous
             .map((plugin) => plugin.id == pluginId ? updated : plugin)

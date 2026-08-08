@@ -71,7 +71,7 @@ class SettingsPage extends ConsumerWidget {
             child: AppListTile(
               icon: Icons.extension_outlined,
               title: l10n.plugins,
-              onTap: () => context.pushNamed(AppRoute.myPlugins.name),
+              onTap: () => context.pushNamed(AppRoute.managePlugins.name),
             ),
           ),
           const VGap(AppSpacing.sm),

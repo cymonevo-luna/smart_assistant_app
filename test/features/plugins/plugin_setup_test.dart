@@ -11,7 +11,7 @@ import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
-import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
+import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
 import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
 import 'package:smart_assistant_app/features/plugins/plugin_setup_provider.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
@@ -20,14 +20,13 @@ import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
 
-const _installedCalendar = {
-  'id': 'plugin-calendar',
-  'slug': 'google-calendar',
-  'name': 'Google Calendar',
-  'description': 'Sync your calendar events',
-  'enabled': true,
-  'setup_status': 'not_started',
-};
+import '../../helpers/plugin_test_data.dart';
+
+final _installedCalendar = nestedInstalledPlugin(
+  id: 'plugin-calendar',
+  slug: 'google-calendar',
+  name: 'Google Calendar',
+);
 
 const _authorizationUrl = 'https://accounts.google.com/o/oauth2/auth?test=1';
 
@@ -82,12 +81,24 @@ void main() {
     );
   }
 
-  void mockInstalled({Map<String, dynamic> plugin = _installedCalendar}) {
+  void mockCatalogEmpty() {
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
+  }
+
+  void mockInstalled({Map<String, dynamic>? plugin}) {
+    mockCatalogEmpty();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': [plugin],
+        'data': [plugin ?? _installedCalendar],
       }),
     );
   }
@@ -185,7 +196,7 @@ void main() {
 
   testWidgets('polling shows completed status in UI', (tester) async {
     mockInstalled(plugin: {
-      ..._installedCalendar,
+      ...Map<String, dynamic>.from(_installedCalendar),
       'setup_status': 'completed',
     });
 
@@ -205,12 +216,12 @@ void main() {
 
   testWidgets('completed plugin list shows ready badge', (tester) async {
     mockInstalled(plugin: {
-      ..._installedCalendar,
+      ...Map<String, dynamic>.from(_installedCalendar),
       'setup_status': 'completed',
     });
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
