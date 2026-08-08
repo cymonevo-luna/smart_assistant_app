@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 
 import '../../features/assistant/data/assistant_settings_repository.dart';
 import '../../features/plugins/data/plugin_repository.dart';
+import '../../features/plugins/services/plugin_auth_url_launcher.dart';
+import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
 import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../storage/preferences_service.dart';
@@ -38,5 +40,11 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<PluginRepository>(
     PluginRepository(apiClient),
+  );
+  locator.registerSingleton<PluginAuthUrlLauncher>(
+    DefaultPluginAuthUrlLauncher(),
+  );
+  locator.registerSingleton<PluginSetupDeepLinkService>(
+    PluginSetupDeepLinkService(),
   );
 }

@@ -1,6 +1,8 @@
 import '../../../core/network/api_client.dart';
 import '../models/installed_plugin.dart';
 import '../models/plugin_catalog_item.dart';
+import '../models/plugin_setup_start_response.dart';
+import '../models/plugin_setup_status_response.dart';
 
 class PluginRepository {
   PluginRepository(this._api);
@@ -44,6 +46,22 @@ class PluginRepository {
       '$installedPath/$pluginId',
       body: {'enabled': enabled},
       decoder: (raw) => InstalledPlugin.fromJson(_unwrap(raw)),
+    );
+  }
+
+  static String setupPath(String pluginId) => '$installedPath/$pluginId/setup';
+
+  Future<PluginSetupStartResponse> startSetup(String pluginId) {
+    return _api.post<PluginSetupStartResponse>(
+      setupPath(pluginId),
+      decoder: (raw) => PluginSetupStartResponse.fromJson(_unwrap(raw)),
+    );
+  }
+
+  Future<PluginSetupStatusResponse> getSetupStatus(String pluginId) {
+    return _api.get<PluginSetupStatusResponse>(
+      '${setupPath(pluginId)}/status',
+      decoder: (raw) => PluginSetupStatusResponse.fromJson(_unwrap(raw)),
     );
   }
 

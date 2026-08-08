@@ -83,6 +83,14 @@
   "setupNotStarted": "Perlu setup",
   "setupInProgress": "Setup berjalan",
   "setupCompleted": "Siap",
+  "setupFailed": "Setup gagal",
   "pluginSetup": "Setup Plugin",
-  "pluginSetupComingSoon": "Setup plugin akan tersedia di pembaruan mendatang."
+  "pluginSetupInstructions": "Hubungkan akun Google agar plugin ini dapat mengakses kalender dan layanan terkait.",
+  "connectGoogleAccount": "Hubungkan Akun Google",
+  "pluginSetupWaiting": "Menunggu otorisasi…",
+  "pluginSetupSuccess": "Setup selesai! Plugin ini siap digunakan.",
+  "pluginSetupFailed": "Setup tidak dapat diselesaikan.",
+  "pluginSetupRetry": "Coba lagi",
+  "pluginsSetupIncompleteBanner": "Beberapa plugin perlu disetup sebelum dapat digunakan.",
+  "openInBrowser": "Buka di browser"
 }

@@ -116,6 +116,14 @@
   "setupNotStarted": "Setup needed",
   "setupInProgress": "Setup in progress",
   "setupCompleted": "Ready",
+  "setupFailed": "Setup failed",
   "pluginSetup": "Plugin Setup",
-  "pluginSetupComingSoon": "Plugin setup will be available in a future update."
+  "pluginSetupInstructions": "Connect your Google account so this plugin can access your calendar and related services.",
+  "connectGoogleAccount": "Connect Google Account",
+  "pluginSetupWaiting": "Waiting for authorization…",
+  "pluginSetupSuccess": "Setup complete! This plugin is ready to use.",
+  "pluginSetupFailed": "Setup could not be completed.",
+  "pluginSetupRetry": "Try again",
+  "pluginsSetupIncompleteBanner": "Some plugins need setup before they can be used.",
+  "openInBrowser": "Open in browser"
 }

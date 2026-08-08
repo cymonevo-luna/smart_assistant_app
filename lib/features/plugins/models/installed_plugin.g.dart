@@ -33,4 +33,5 @@ const _$PluginSetupStatusEnumMap = {
   PluginSetupStatus.notStarted: 'not_started',
   PluginSetupStatus.inProgress: 'in_progress',
   PluginSetupStatus.completed: 'completed',
+  PluginSetupStatus.failed: 'failed',
 };

@@ -8,6 +8,8 @@ import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/login_page.dart';
+import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
+import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 
 import 'helpers/auth_harness.dart';
 
@@ -18,7 +20,9 @@ void main() {
     locator
       ..registerSingleton<PreferencesService>(await PreferencesService.create())
       ..registerSingleton<SecureStorageService>(FakeSecureStorage())
-      ..registerSingleton<ApiClient>(ApiClient(baseUrl: 'https://api.test'));
+      ..registerSingleton<ApiClient>(ApiClient(baseUrl: 'https://api.test'))
+      ..registerSingleton<PluginAuthUrlLauncher>(DefaultPluginAuthUrlLauncher())
+      ..registerSingleton<PluginSetupDeepLinkService>(PluginSetupDeepLinkService());
   });
 
   testWidgets('unauthenticated startup routes to the login screen',
