@@ -8,8 +8,10 @@ import 'core/config/app_config.dart';
 import 'core/di/locator.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/timezone/timezone_initializer.dart';
 import 'features/assistant/services/assistant_widget_init.dart';
 import 'features/assistant/services/foreground_task_init.dart';
+import 'features/reminders/services/location_reminder_notification_service.dart';
 import 'features/reminders/services/reminder_notification_service.dart';
 
 Future<void> main() async {
@@ -22,7 +24,9 @@ Future<void> main() async {
 
   // Load environment config (.env) and register services.
   await AppConfig.load();
+  await initializeLocalTimeZone();
   await setupLocator();
+  await locator<LocationReminderNotificationService>().initialize();
   await locator<ReminderNotificationService>().initialize();
 
   // Each app sets its brand color here; users can still change it at runtime.

@@ -739,6 +739,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open in browser'**
   String get openInBrowser;
+
+  /// No description provided for @reminderNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder notifications'**
+  String get reminderNotificationsTitle;
+
+  /// No description provided for @reminderNotificationsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder notifications are enabled when the Reminder plugin is installed. The app syncs reminders from your account and shows local alerts at the scheduled time.'**
+  String get reminderNotificationsDescription;
+
+  /// No description provided for @reminderNotificationsRequestPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Check notification permission'**
+  String get reminderNotificationsRequestPermission;
+
+  /// No description provided for @reminderNotificationsPermissionRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission checked. Reminders will sync when allowed.'**
+  String get reminderNotificationsPermissionRequested;
 }
 
 class _AppLocalizationsDelegate

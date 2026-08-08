@@ -4,8 +4,8 @@ import '../../../core/storage/preferences_service.dart';
 import '../models/location_reminder.dart';
 
 /// Persists [LocationReminder] records on-device for offline proximity checks.
-class ReminderRepository {
-  ReminderRepository(this._prefs);
+class LocationReminderRepository {
+  LocationReminderRepository(this._prefs);
 
   final PreferencesService _prefs;
 

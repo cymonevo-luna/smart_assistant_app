@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:smart_assistant_app/features/reminders/services/reminder_notification_service.dart';
+import 'package:smart_assistant_app/features/reminders/services/location_reminder_notification_service.dart';
 
 /// Device integration test: posts a reminder notification for host-side
 /// verification via scripts/verify-reminder-notification.sh.
@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('showReminderNotification displays on device', (tester) async {
-    final service = ReminderNotificationService(
+    final service = LocationReminderNotificationService(
       ensureNotificationPermission: () async => true,
     );
     await service.initialize();

@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../models/assistant_action.dart';
 import '../models/assistant_session.dart';
 
 class AssistantRepository {
@@ -15,18 +16,29 @@ class AssistantRepository {
     );
   }
 
-  Future<AssistantMessageResponse> sendMessage({
+  Future<AssistantMessageResult> sendMessage({
     required String sessionId,
     required String text,
     required String source,
   }) {
-    return _api.post<AssistantMessageResponse>(
+    return _api.post<AssistantMessageResult>(
       '$sessionsPath/$sessionId/messages',
       body: {
         'text': text,
         'source': source,
       },
-      decoder: (raw) => AssistantMessageResponse.fromJson(_unwrap(raw)),
+      decoder: (raw) {
+        final data = _unwrap(raw);
+        final actionJson = data['action'];
+        return AssistantMessageResult(
+          response: AssistantMessageResponse.fromJson(data),
+          action: actionJson is Map<String, dynamic>
+              ? AssistantAction.fromJson(actionJson)
+              : actionJson is Map
+                  ? AssistantAction.fromJson(actionJson.cast<String, dynamic>())
+                  : null,
+        );
+      },
     );
   }
 

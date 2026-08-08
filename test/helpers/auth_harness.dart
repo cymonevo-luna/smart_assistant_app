@@ -3,7 +3,7 @@ import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/location/location_service.dart';
 import 'package:smart_assistant_app/features/reminders/data/reminder_api_repository.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/location_monitor_service.dart';
 import 'package:smart_assistant_app/features/reminders/reminder_registration_service.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -42,10 +42,10 @@ void registerReminderTestServices(
   required PreferencesService prefs,
   required ApiClient apiClient,
 }) {
-  final reminderRepository = ReminderRepository(prefs);
+  final reminderRepository = LocationReminderRepository(prefs);
   getIt
     ..registerSingleton<LocationService>(LocationService())
-    ..registerSingleton<ReminderRepository>(reminderRepository)
+    ..registerSingleton<LocationReminderRepository>(reminderRepository)
     ..registerSingleton<ReminderApiRepository>(
       ReminderApiRepository(apiClient),
     )

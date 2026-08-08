@@ -1,7 +1,7 @@
 import '../assistant/models/assistant_reply.dart';
 import '../location/location_service.dart';
+import 'data/location_reminder_repository.dart';
 import 'data/reminder_api_repository.dart';
-import 'data/reminder_repository.dart';
 import 'location_monitor_service.dart';
 import 'models/location_reminder.dart';
 
@@ -12,7 +12,7 @@ typedef OnLocationPermissionExplanationNeeded = void Function(String message);
 /// reminders from the API on startup.
 class ReminderRegistrationService {
   ReminderRegistrationService({
-    required ReminderRepository reminderRepository,
+    required LocationReminderRepository reminderRepository,
     required ReminderApiRepository reminderApiRepository,
     required LocationService locationService,
     required LocationMonitorService locationMonitorService,
@@ -24,7 +24,7 @@ class ReminderRegistrationService {
     _onPermissionExplanationNeeded = onPermissionExplanationNeeded;
   }
 
-  final ReminderRepository _reminderRepository;
+  final LocationReminderRepository _reminderRepository;
   final ReminderApiRepository _reminderApiRepository;
   final LocationService _locationService;
   final LocationMonitorService _locationMonitorService;

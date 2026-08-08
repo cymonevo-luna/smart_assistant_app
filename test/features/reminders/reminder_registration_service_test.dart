@@ -6,7 +6,7 @@ import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_reply.dart';
 import 'package:smart_assistant_app/features/location/location_service.dart';
 import 'package:smart_assistant_app/features/reminders/data/reminder_api_repository.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/location_monitor_service.dart';
 import 'package:smart_assistant_app/features/reminders/reminder_registration_service.dart';
 
@@ -24,14 +24,14 @@ class _TrackingLocationMonitorService implements LocationMonitorService {
 
 void main() {
   late PreferencesService prefs;
-  late ReminderRepository reminderRepository;
+  late LocationReminderRepository reminderRepository;
   late _TrackingLocationMonitorService monitorService;
   late ReminderRegistrationService service;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await PreferencesService.create();
-    reminderRepository = ReminderRepository(prefs);
+    reminderRepository = LocationReminderRepository(prefs);
     monitorService = _TrackingLocationMonitorService();
     service = ReminderRegistrationService(
       reminderRepository: reminderRepository,

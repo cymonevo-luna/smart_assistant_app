@@ -84,8 +84,8 @@ void main() {
       source: 'button',
     );
 
-    expect(response.reply.text, 'Done');
-    expect(response.reply.type.name, 'text');
+    expect(response.response.reply.text, 'Done');
+    expect(response.response.reply.type.name, 'text');
   });
 
   test('sendMessage parses action_result reply with action payload', () async {
@@ -125,10 +125,10 @@ void main() {
       source: 'button',
     );
 
-    expect(response.reply.type.name, 'actionResult');
-    expect(response.reply.text, 'Reminder set.');
-    expect(response.reply.action?.pluginSlug, 'set-reminder');
-    expect(response.reply.action?.status, 'success');
-    expect(response.reply.action?.payload?['reminder_id'], 'rem-api-1');
+    expect(response.response.reply.type.name, 'actionResult');
+    expect(response.response.reply.text, 'Reminder set.');
+    expect(response.response.reply.action?.pluginSlug, 'set-reminder');
+    expect(response.response.reply.action?.status, 'success');
+    expect(response.response.reply.action?.payload?['reminder_id'], 'rem-api-1');
   });
 }

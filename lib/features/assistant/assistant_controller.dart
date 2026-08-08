@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/di/locator.dart';
 import '../../core/network/api_exception.dart';
 import '../../features/reminders/reminder_registration_service.dart';
+import '../../features/reminders/services/reminder_notification_service.dart';
 import 'data/assistant_repository.dart';
 import 'models/assistant_reply.dart';
 import 'models/assistant_session.dart';
@@ -175,12 +176,13 @@ class AssistantController extends Notifier<AssistantUiState> {
     );
 
     try {
-      final response = await _repo.sendMessage(
+      final result = await _repo.sendMessage(
         sessionId: state.sessionId!,
         text: text,
         source: source,
       );
 
+      final response = result.response;
       final reply = response.reply;
       state = state.copyWith(
         messages: [
@@ -197,6 +199,14 @@ class AssistantController extends Notifier<AssistantUiState> {
 
       if (reply.type == AssistantReplyType.actionResult && reply.action != null) {
         unawaited(_reminderRegistration.handleActionResult(reply.action!));
+      }
+
+      final topLevelAction = result.action;
+      final replyAction = reply.action;
+      final reminderSlug = topLevelAction?.pluginSlug ?? replyAction?.pluginSlug;
+      final reminderStatus = topLevelAction?.status ?? replyAction?.status;
+      if (reminderSlug == 'reminder' && reminderStatus == 'success') {
+        unawaited(locator<ReminderNotificationService>().syncReminders());
       }
 
       if (response.sessionStatus == AssistantSessionStatus.completed) {

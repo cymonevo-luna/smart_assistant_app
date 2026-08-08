@@ -36,7 +36,7 @@ abstract class WakeWordEngine {
 /// built-in keywords, so no custom model training/asset bundling is needed —
 /// only a Picovoice AccessKey (see https://console.picovoice.ai/).
 class PorcupineWakeWordEngine implements WakeWordEngine {
-  PorcupineWakeWordEngine({required String accessKey}) : _accessKey = accessKey;
+  PorcupineWakeWordEngine({required this._accessKey});
 
   final String _accessKey;
 

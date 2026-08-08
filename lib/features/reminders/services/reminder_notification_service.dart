@@ -1,128 +1,194 @@
 import 'dart:io';
 
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 
-/// Shows on-device notifications when a location reminder triggers.
-///
-/// Uses the `location_reminders` channel, distinct from the `active_listening`
-/// foreground-service channel used by wake-word monitoring.
+import '../../../core/network/api_exception.dart';
+import '../../../core/router/app_router.dart';
+import '../data/time_reminder_api_repository.dart';
+import '../models/reminder.dart';
+import 'local_notifications_client.dart';
+import 'reminder_notification_permission_client.dart';
+
+const _notificationTitle = 'Reminder';
+const _androidChannelId = 'reminders';
+const _androidChannelName = 'Reminders';
+const _androidChannelDescription =
+    'Local reminders synced from your Smart Assistant account.';
+
+/// Syncs time reminder notifications from the API and schedules local alerts.
 class ReminderNotificationService {
   ReminderNotificationService({
-    FlutterLocalNotificationsPlugin? plugin,
-    Future<bool> Function()? ensureNotificationPermission,
-  })  : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
-        _ensureNotificationPermission = ensureNotificationPermission ??
-            _defaultEnsureNotificationPermission;
+    required this._repository,
+    LocalNotificationsClient? notificationsClient,
+    ReminderNotificationPermissionClient? permissionClient,
+    bool? isMobile,
+    void Function()? onNotificationTap,
+  })  : _notifications =
+            notificationsClient ?? FlutterLocalNotificationsClient(),
+        _permissionClient = permissionClient ??
+            PlatformReminderNotificationPermissionClient(),
+        _isMobile = isMobile ?? (Platform.isAndroid || Platform.isIOS),
+        _onNotificationTap = onNotificationTap ?? _defaultNotificationTap;
 
-  static const channelId = 'location_reminders';
-  static const channelName = 'Location Reminders';
-  static const channelDescription =
-      'Shown when a location reminder triggers.';
+  final ReminderDataSource _repository;
+  final LocalNotificationsClient _notifications;
+  final ReminderNotificationPermissionClient _permissionClient;
+  final bool _isMobile;
+  final void Function() _onNotificationTap;
 
-  final FlutterLocalNotificationsPlugin _plugin;
-  final Future<bool> Function() _ensureNotificationPermission;
-  void Function(String reminderId)? _onNotificationTapped;
   bool _initialized = false;
+  final Set<int> _shownThisSession = <int>{};
+
+  static void _defaultNotificationTap() {
+    appRouter.goNamed(AppRoute.assistant.name);
+  }
 
   Future<void> initialize() async {
-    if (_initialized) return;
+    if (!_isMobile || _initialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-      defaultPresentAlert: true,
-      defaultPresentBadge: true,
-      defaultPresentSound: true,
-    );
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: darwinSettings,
-      macOS: darwinSettings,
-    );
-
-    await _plugin.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: _handleNotificationResponse,
+    await _notifications.initialize(
+      settings: const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
+      ),
+      onDidReceiveNotificationResponse: (_) => _onNotificationTap(),
     );
 
     if (Platform.isAndroid) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      await android?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          channelId,
-          channelName,
-          description: channelDescription,
-          importance: Importance.high,
-        ),
-      );
+      final client = _notifications;
+      if (client is FlutterLocalNotificationsClient) {
+        final androidPlugin = client.plugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+        await androidPlugin?.createNotificationChannel(
+          const AndroidNotificationChannel(
+            _androidChannelId,
+            _androidChannelName,
+            description: _androidChannelDescription,
+            importance: Importance.high,
+          ),
+        );
+      }
     }
 
     _initialized = true;
   }
 
-  /// Registers a callback invoked when the user taps a reminder notification.
-  /// The payload is the reminder id passed to [showReminderNotification].
-  void registerTapHandler(void Function(String reminderId) handler) {
-    _onNotificationTapped = handler;
+  Future<void> syncReminders() async {
+    if (!_isMobile) return;
+
+    await initialize();
+    if (!await _permissionClient.ensureGranted()) return;
+
+    try {
+      final reminders = await _repository.listReminders();
+      await _syncScheduledReminders(reminders);
+      await _syncPendingServerNotifications();
+    } on ApiException {
+      // Ignore sync failures; the next lifecycle event will retry.
+    }
   }
 
-  Future<void> showReminderNotification({
-    required String id,
-    required String title,
-    required String body,
-  }) async {
-    await _ensureNotificationPermission();
-
-    final notificationId = id.hashCode & 0x7FFFFFFF;
-
-    const androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: channelDescription,
-      importance: Importance.high,
-      priority: Priority.high,
+  Future<void> _syncScheduledReminders(List<Reminder> reminders) async {
+    final now = DateTime.now();
+    final pendingReminders = reminders.where(
+      (reminder) => reminder.status == ReminderStatus.pending,
     );
+    final desiredIds = <int>{};
 
-    const darwinDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+    for (final reminder in pendingReminders) {
+      final notificationId = reminderNotificationId(reminder.id);
+      desiredIds.add(notificationId);
 
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: darwinDetails,
-      macOS: darwinDetails,
-    );
+      if (!reminder.remindAt.isAfter(now)) {
+        continue;
+      }
 
-    await _plugin.show(
-      notificationId,
-      title,
-      body,
-      details,
-      payload: id,
-    );
-  }
-
-  void _handleNotificationResponse(NotificationResponse response) {
-    final payload = response.payload;
-    if (payload == null || payload.isEmpty) return;
-    _onNotificationTapped?.call(payload);
-  }
-
-  static Future<bool> _defaultEnsureNotificationPermission() async {
-    if (!Platform.isAndroid) return true;
-
-    var permission = await FlutterForegroundTask.checkNotificationPermission();
-    if (permission == NotificationPermission.granted) {
-      return true;
+      await _notifications.zonedSchedule(
+        id: notificationId,
+        title: _notificationTitle,
+        body: reminder.message,
+        scheduledDate: tz.TZDateTime.from(reminder.remindAt, tz.local),
+        notificationDetails: _notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
     }
 
-    permission = await FlutterForegroundTask.requestNotificationPermission();
-    return permission == NotificationPermission.granted;
+    final pendingRequests = await _notifications.pendingNotificationRequests();
+    for (final request in pendingRequests) {
+      if (!desiredIds.contains(request.id)) {
+        await _notifications.cancel(request.id);
+      }
+    }
+  }
+
+  Future<void> _syncPendingServerNotifications() async {
+    final pending = await _repository.listPendingNotifications();
+
+    for (final reminder in pending) {
+      final notificationId = reminderNotificationId(reminder.id);
+      if (_shownThisSession.contains(notificationId)) {
+        continue;
+      }
+
+      await _notifications.show(
+        id: notificationId,
+        title: _notificationTitle,
+        body: reminder.message,
+        notificationDetails: _notificationDetails(),
+      );
+      _shownThisSession.add(notificationId);
+      await _repository.markDelivered(reminder.id);
+    }
+  }
+
+  NotificationDetails _notificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        _androidChannelId,
+        _androidChannelName,
+        channelDescription: _androidChannelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+  }
+
+  /// Visible for tests to reset session-scoped delivery tracking.
+  void clearShownThisSession() => _shownThisSession.clear();
+
+  /// Schedules a one-off local notification for QA/device verification.
+  ///
+  /// Does not call the API. Used by [ReminderTestDeepLinkService] in debug
+  /// builds so host scripts can verify notification delivery without staging
+  /// credentials.
+  Future<void> scheduleTestNotification({
+    required String message,
+    Duration delay = const Duration(seconds: 5),
+  }) async {
+    if (!_isMobile) return;
+
+    await initialize();
+    if (!await _permissionClient.ensureGranted()) return;
+
+    final scheduledAt = DateTime.now().add(delay);
+    if (!scheduledAt.isAfter(DateTime.now())) {
+      return;
+    }
+
+    await _notifications.zonedSchedule(
+      id: reminderNotificationId('debug-reminder-test'),
+      title: _notificationTitle,
+      body: message,
+      scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
+      notificationDetails: _notificationDetails(),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
   }
 }

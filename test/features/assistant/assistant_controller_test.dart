@@ -16,7 +16,7 @@ import 'package:smart_assistant_app/features/assistant/services/speech_to_text_s
 import 'package:smart_assistant_app/features/assistant/services/text_to_speech_service.dart';
 import 'package:smart_assistant_app/features/location/location_service.dart';
 import 'package:smart_assistant_app/features/reminders/data/reminder_api_repository.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/location_monitor_service.dart';
 import 'package:smart_assistant_app/features/reminders/reminder_registration_service.dart';
 
@@ -120,7 +120,7 @@ void main() {
     adapter = mocked.adapter;
     recognizer = FakeSpeechRecognizer();
 
-    final reminderRepository = ReminderRepository(prefs);
+    final reminderRepository = LocationReminderRepository(prefs);
     final reminderApiRepository = ReminderApiRepository(mocked.client);
 
     locator
@@ -130,7 +130,7 @@ void main() {
       ..registerSingleton<AssistantRepository>(
         AssistantRepository(mocked.client),
       )
-      ..registerSingleton<ReminderRepository>(reminderRepository)
+      ..registerSingleton<LocationReminderRepository>(reminderRepository)
       ..registerSingleton<ReminderApiRepository>(reminderApiRepository)
       ..registerSingleton<LocationMonitorService>(StubLocationMonitorService());
 

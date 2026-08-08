@@ -7,7 +7,7 @@ import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/location/location_service.dart';
 import 'package:smart_assistant_app/features/reminders/data/reminder_api_repository.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/location_monitor_service.dart';
 import 'package:smart_assistant_app/features/reminders/reminder_registration_service.dart';
 
@@ -15,7 +15,7 @@ import '../../helpers/auth_harness.dart';
 
 void main() {
   late DioAdapter adapter;
-  late ReminderRepository reminderRepository;
+  late LocationReminderRepository reminderRepository;
   late ReminderRegistrationService service;
 
   setUp(() async {
@@ -24,13 +24,13 @@ void main() {
     final prefs = await PreferencesService.create();
     final mocked = buildMockedApiClient();
     adapter = mocked.adapter;
-    reminderRepository = ReminderRepository(prefs);
+    reminderRepository = LocationReminderRepository(prefs);
 
     locator
       ..registerSingleton<PreferencesService>(prefs)
       ..registerSingleton<ApiClient>(mocked.client)
       ..registerSingleton<LocationService>(LocationService())
-      ..registerSingleton<ReminderRepository>(reminderRepository)
+      ..registerSingleton<LocationReminderRepository>(reminderRepository)
       ..registerSingleton<ReminderApiRepository>(
         ReminderApiRepository(mocked.client),
       )

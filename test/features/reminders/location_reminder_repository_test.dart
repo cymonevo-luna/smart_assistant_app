@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
-import 'package:smart_assistant_app/features/reminders/data/reminder_repository.dart';
+import 'package:smart_assistant_app/features/reminders/data/location_reminder_repository.dart';
 import 'package:smart_assistant_app/features/reminders/models/location_reminder.dart';
 
 void main() {
@@ -29,7 +29,7 @@ void main() {
   }
 
   test('save and load pending reminder', () async {
-    final repo = ReminderRepository(prefs);
+    final repo = LocationReminderRepository(prefs);
     await repo.save(
       pendingReminder(
         id: 'test-1',
@@ -47,7 +47,7 @@ void main() {
   });
 
   test('mark triggered removes from pending', () async {
-    final repo = ReminderRepository(prefs);
+    final repo = LocationReminderRepository(prefs);
     await repo.save(pendingReminder(id: 'test-1'));
 
     await repo.markTriggered('test-1');
@@ -60,10 +60,10 @@ void main() {
   });
 
   test('persistence across repository re-instantiation', () async {
-    final repo = ReminderRepository(prefs);
+    final repo = LocationReminderRepository(prefs);
     await repo.save(pendingReminder(id: 'test-1', title: 'Buy milk'));
 
-    final relaunched = ReminderRepository(prefs);
+    final relaunched = LocationReminderRepository(prefs);
     final pending = await relaunched.getAllPending();
 
     expect(pending, hasLength(1));
