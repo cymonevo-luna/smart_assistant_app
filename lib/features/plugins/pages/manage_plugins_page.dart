@@ -112,16 +112,22 @@ class _ManagePluginsPageState extends ConsumerState<ManagePluginsPage>
   Future<void> _install(PluginCatalogItem item) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _installingSlugs.add(item.slug));
-    final ok = await ref.read(installedPluginsProvider.notifier).install(
+    final installed = await ref.read(installedPluginsProvider.notifier).install(
           item.slug,
         );
     if (!mounted) return;
     setState(() => _installingSlugs.remove(item.slug));
-    if (ok) {
+    if (installed != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.pluginInstalled(item.name))),
       );
       _tabController.animateTo(0);
+      if (installed.setupStatus != PluginSetupStatus.completed) {
+        context.pushNamed(
+          AppRoute.pluginSetup.name,
+          pathParameters: {'id': installed.id},
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.pluginActionFailed)),
