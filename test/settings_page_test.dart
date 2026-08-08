@@ -215,7 +215,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Plugins'));
+    final pluginsTile = find.text('Plugins');
+    await tester.scrollUntilVisible(
+      pluginsTile,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(pluginsTile);
     await tester.pumpAndSettle();
 
     expect(find.text('Manage Plugins'), findsOneWidget);
