@@ -112,6 +112,22 @@ class _AssistantSettingsSectionState
                   controller: _wakeWordController,
                   prefixIcon: Icons.record_voice_over_outlined,
                   onChanged: _onWakeWordChanged,
+                  enabled: false,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                ),
+                child: Text(
+                  l10n.wakeWordFixedNotice,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
               ),
               if (_wakeWordError != null)

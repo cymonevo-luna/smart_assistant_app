@@ -13,6 +13,17 @@ abstract final class AppConfig {
 
   static String get sentryDsn => dotenv.maybeGet('SENTRY_DSN') ?? '';
 
+  /// AccessKey from https://console.picovoice.ai/ used to run the on-device
+  /// Porcupine wake-word engine. Empty disables wake-word detection.
+  ///
+  /// Guards on [DotEnv.isInitialized] (unlike the other getters here) because
+  /// this is read from a background isolate (see
+  /// ActiveListeningTaskHandler) as well as from widget tests that never
+  /// call [load].
+  static String get picovoiceAccessKey => dotenv.isInitialized
+      ? (dotenv.maybeGet('PICOVOICE_ACCESS_KEY') ?? '')
+      : '';
+
   static AppEnv get environment {
     return switch (dotenv.maybeGet('APP_ENV')) {
       'prod' => AppEnv.prod,

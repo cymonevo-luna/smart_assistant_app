@@ -467,7 +467,7 @@ abstract class AppLocalizations {
   /// No description provided for @activeListeningSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Keeps the microphone active to detect your wake word. May increase battery usage.'**
+  /// **'Runs a low-power on-device listener for your wake word. Minimal battery impact.'**
   String get activeListeningSubtitle;
 
   /// No description provided for @wakeWordRequired.
@@ -475,6 +475,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wake word cannot be empty'**
   String get wakeWordRequired;
+
+  /// No description provided for @wakeWordFixedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom wake words aren\'t supported yet — active listening only responds to \"Jarvis\".'**
+  String get wakeWordFixedNotice;
 
   /// No description provided for @listeningForWakeWord.
   ///

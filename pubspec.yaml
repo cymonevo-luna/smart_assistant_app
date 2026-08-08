@@ -54,6 +54,7 @@ dependencies:
   webview_flutter: ^4.13.0
   flutter_tts: ^4.2.3
   flutter_foreground_task: ^8.17.0
+  porcupine_flutter: ^4.0.0
 
 dev_dependencies:
   flutter_test:

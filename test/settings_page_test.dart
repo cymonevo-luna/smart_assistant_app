@@ -125,7 +125,13 @@ void main() {
     });
   });
 
-  testWidgets('empty wake word blocked', (WidgetTester tester) async {
+  testWidgets('wake word field is fixed to Jarvis (not yet editable)', (
+    WidgetTester tester,
+  ) async {
+    // Local wake-word detection (Porcupine) only supports its built-in
+    // "Jarvis" keyword right now — see wake_word_engine.dart. The field is
+    // disabled rather than removed so it's ready once custom wake words
+    // (per-phrase trained models) are supported.
     adapter.onGet(
       '/api/v1/assistant/settings',
       (server) => server.reply(200, {
@@ -142,15 +148,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField), '');
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Wake word cannot be empty'), findsOneWidget);
-    expect(
-      adapter.history.where((h) => h.request.method?.name == 'PUT'),
-      isEmpty,
-    );
+    final field = tester.widget<TextFormField>(find.byType(TextFormField));
+    expect(field.enabled, isFalse);
   });
 }
 

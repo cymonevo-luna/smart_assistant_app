@@ -195,10 +195,14 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get activeListeningSubtitle =>
-      'Menjaga mikrofon aktif untuk mendeteksi kata bangun. Dapat meningkatkan penggunaan battery.';
+      'Menjalankan pendengar hemat daya di perangkat untuk kata bangun. Dampak battery minimal.';
 
   @override
   String get wakeWordRequired => 'Kata bangun tidak boleh kosong';
+
+  @override
+  String get wakeWordFixedNotice =>
+      'Kata bangun kustom belum didukung — dengarkan aktif hanya merespons \"Jarvis\".';
 
   @override
   String listeningForWakeWord(String wakeWord) {

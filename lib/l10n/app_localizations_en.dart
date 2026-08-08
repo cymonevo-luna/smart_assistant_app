@@ -195,10 +195,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeListeningSubtitle =>
-      'Keeps the microphone active to detect your wake word. May increase battery usage.';
+      'Runs a low-power on-device listener for your wake word. Minimal battery impact.';
 
   @override
   String get wakeWordRequired => 'Wake word cannot be empty';
+
+  @override
+  String get wakeWordFixedNotice =>
+      'Custom wake words aren\'t supported yet — active listening only responds to \"Jarvis\".';
 
   @override
   String listeningForWakeWord(String wakeWord) {

@@ -43,10 +43,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- stopWithTask=false: keep listening for the wake word after the
+             app is swiped away from recents. The service (and the process
+             hosting it) only stops when active listening is turned off or
+             the user force-stops the app from Settings. -->
         <service
             android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
             android:foregroundServiceType="microphone"
-            android:stopWithTask="true"
+            android:stopWithTask="false"
             android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
