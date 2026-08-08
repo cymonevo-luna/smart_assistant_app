@@ -96,27 +96,79 @@ list_running_emulator_serials() {
   "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+device$/ { print $1 }'
 }
 
+list_emulator_serials_any_state() {
+  "$(adb_bin)" devices 2>/dev/null | awk '/^emulator-[0-9]+[[:space:]]+/ { print $1 }'
+}
+
+adb_device_state() {
+  local serial="$1"
+  "$(adb_bin)" devices 2>/dev/null | awk -v serial="$serial" '$1 == serial { print $2; exit }'
+}
+
 pick_running_emulator_serial() {
   list_running_emulator_serials | head -n1
 }
 
 emulator_boot_completed() {
   local serial="$1"
-  [ "$("$(adb_bin)" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]
+  [ "$(adb_device_state "$serial")" = "device" ] \
+    && [ "$("$(adb_bin)" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]
+}
+
+# Cloud VMs without KVM keep adb in "offline" for minutes while QEMU boots.
+# Poll until the serial is online, restarting adb once if it stays offline.
+wait_for_adb_online() {
+  local serial="$1"
+  local timeout="${2:-600}"
+  local elapsed=0
+  local state=""
+  local adb_restarted=0
+
+  _flutter_test_env_log "Waiting for $serial to leave adb offline (timeout ${timeout}s)..."
+  while [ "$elapsed" -lt "$timeout" ]; do
+    state="$(adb_device_state "$serial")"
+    case "$state" in
+      device)
+        _flutter_test_env_log "$serial is online."
+        return 0
+        ;;
+      offline)
+        if [ "$adb_restarted" -eq 0 ] && [ "$elapsed" -ge 60 ]; then
+          _flutter_test_env_log "$serial still offline after 60s; restarting adb server..."
+          "$(adb_bin)" kill-server >/dev/null 2>&1 || true
+          "$(adb_bin)" start-server >/dev/null 2>&1 || true
+          adb_restarted=1
+        fi
+        ;;
+      "")
+        ;;
+      *)
+        _flutter_test_env_log "$serial adb state: $state"
+        ;;
+    esac
+    sleep 5
+    elapsed=$((elapsed + 5))
+  done
+
+  _flutter_test_env_log "Timed out waiting for $serial to become online (last state: ${state:-missing})."
+  return 1
 }
 
 wait_for_emulator_boot() {
   local serial="$1"
-  local timeout="${2:-300}"
+  local timeout="${2:-600}"
   local elapsed=0
+
+  wait_for_adb_online "$serial" "$timeout" || return 1
+
   _flutter_test_env_log "Waiting for $serial to finish booting (timeout ${timeout}s)..."
   while [ "$elapsed" -lt "$timeout" ]; do
     if emulator_boot_completed "$serial"; then
       _flutter_test_env_log "$serial is ready."
       return 0
     fi
-    sleep 2
-    elapsed=$((elapsed + 2))
+    sleep 5
+    elapsed=$((elapsed + 5))
   done
   _flutter_test_env_log "Timed out waiting for $serial to boot."
   return 1

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -9,6 +10,10 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('showReminderNotification displays on device', (tester) async {
+    // Attach an Activity context before touching platform notification APIs.
+    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+    await tester.pump();
+
     final service = ReminderNotificationService(
       ensureNotificationPermission: () async => true,
     );
@@ -19,6 +24,6 @@ void main() {
       body: 'You are near the store',
     );
     // Keep the notification visible for host-side dumpsys verification.
-    await Future<void>.delayed(const Duration(seconds: 5));
+    await Future<void>.delayed(const Duration(seconds: 15));
   });
 }

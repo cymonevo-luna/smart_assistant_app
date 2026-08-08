@@ -27,7 +27,6 @@ source "$SCRIPT_DIR/lib/flutter-test-env.sh"
 NOTIFICATION_CHANNEL_ID="location_reminders"
 NOTIFICATION_TITLE="Location Reminder"
 POLL_INTERVAL_SEC=2
-POLL_TIMEOUT_SEC=900
 
 log() { printf '>> %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
@@ -69,6 +68,20 @@ resolve_device() {
   export DEVICE
 }
 
+ensure_emulator() {
+  if [ -n "${DEVICE:-}" ] && [ "$(adb_device_state "$DEVICE")" = "device" ]; then
+    return 0
+  fi
+
+  if [ -n "$(pick_running_emulator_serial || true)" ]; then
+    return 0
+  fi
+
+  log "No online emulator; starting shared Luna_Test_Lite AVD..."
+  DEVICE="$(bash "$SCRIPT_DIR/start-shared-emulator.sh" | tail -n1)"
+  export DEVICE
+}
+
 ensure_apk() {
   if [ -f "$APK_PATH" ]; then
     log "Using APK: $APK_PATH"
@@ -91,34 +104,17 @@ install_apk() {
 grant_runtime_permissions() {
   log "Granting POST_NOTIFICATIONS"
   adb_exec shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+  adb_exec shell appops set "$PACKAGE" POST_NOTIFICATION allow 2>/dev/null || true
 }
 
 notification_dumpsys() {
-  adb_exec shell dumpsys notification --list 2>/dev/null \
-    || adb_exec shell dumpsys notification 2>/dev/null \
-    || true
+  adb_exec shell dumpsys notification 2>/dev/null || true
 }
 
 notification_present() {
   local dump="$1"
-  printf '%s\n' "$dump" | grep -q "$PACKAGE" \
+  printf '%s\n' "$dump" | grep -q "NotificationRecord.*${PACKAGE}" \
     && printf '%s\n' "$dump" | grep -Eqi "$NOTIFICATION_CHANNEL_ID|${NOTIFICATION_TITLE// /[[:space:]]}"
-}
-
-wait_for_notification() {
-  local elapsed=0
-  local dump
-  while [ "$elapsed" -lt "$POLL_TIMEOUT_SEC" ]; do
-    dump="$(notification_dumpsys)"
-    if notification_present "$dump"; then
-      log "Verified: reminder notification visible (channel=$NOTIFICATION_CHANNEL_ID title='$NOTIFICATION_TITLE')"
-      return 0
-    fi
-    sleep "$POLL_INTERVAL_SEC"
-    elapsed=$((elapsed + POLL_INTERVAL_SEC))
-  done
-
-  die "Timed out after ${POLL_TIMEOUT_SEC}s waiting for reminder notification"
 }
 
 run_integration_test() {
@@ -130,16 +126,6 @@ run_integration_test() {
   )
 }
 
-run_integration_test_async() {
-  resolve_flutter_bin || die "Flutter not found"
-  log "Running reminder notification integration test on $DEVICE (background)"
-  (
-    cd "$REPO_DIR"
-    "$FLUTTER_BIN" test integration_test/reminder_notification_test.dart -d "$DEVICE"
-  ) &
-  echo $!
-}
-
 main() {
   case "${1:-}" in
     -h|--help|help)
@@ -148,16 +134,42 @@ main() {
       ;;
   esac
 
+  ensure_emulator
   resolve_device
   ensure_apk
   install_apk
   grant_runtime_permissions
-  test_pid="$(run_integration_test_async)"
-  wait_for_notification || {
-    kill "$test_pid" 2>/dev/null || true
+
+  local verified_flag poll_pid test_rc
+  verified_flag="$(mktemp)"
+
+  (
+    while true; do
+      if notification_present "$(notification_dumpsys)"; then
+        echo ok >"$verified_flag"
+        exit 0
+      fi
+      sleep "$POLL_INTERVAL_SEC"
+    done
+  ) &
+  poll_pid=$!
+
+  run_integration_test
+  test_rc=$?
+  kill "$poll_pid" 2>/dev/null || true
+  wait "$poll_pid" 2>/dev/null || true
+
+  if [ "$test_rc" -ne 0 ]; then
+    rm -f "$verified_flag"
+    die "Integration test failed (exit=$test_rc)"
+  fi
+
+  if [ ! -f "$verified_flag" ]; then
+    rm -f "$verified_flag"
     die "Reminder notification not visible during integration test"
-  }
-  wait "$test_pid" || die "Integration test failed"
+  fi
+  rm -f "$verified_flag"
+
   log "Reminder notification verification PASSED"
 }
 

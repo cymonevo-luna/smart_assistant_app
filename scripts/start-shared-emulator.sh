@@ -68,8 +68,10 @@ if ! "$(
 fi
 
 gpu_flag="-gpu auto"
+accel_flag=""
 if ! kvm_usable && ! kvm_group_member; then
   gpu_flag="-gpu swiftshader_indirect"
+  accel_flag="-accel off"
   _flutter_test_env_log "KVM unavailable; starting emulator with software rendering (slow)."
 fi
 
@@ -84,17 +86,19 @@ run_with_kvm "$(
   -no-window \
   -no-boot-anim \
   -no-snapshot-save \
+  -no-metrics \
   $gpu_flag \
+  $accel_flag \
   >/dev/null 2>&1 &
 
 emu_pid=$!
 record_shared_emulator "$emu_pid" ""
 
 serial=""
-for _ in $(seq 1 60); do
-  serial="$(pick_running_emulator_serial || true)"
+for _ in $(seq 1 120); do
+  serial="$(list_emulator_serials_any_state | head -n1 || true)"
   [ -n "$serial" ] && break
-  sleep 2
+  sleep 5
 done
 
 if [ -z "$serial" ]; then
@@ -102,7 +106,7 @@ if [ -z "$serial" ]; then
   exit 1
 fi
 
-wait_for_emulator_boot "$serial" 300
+wait_for_emulator_boot "$serial" 600
 record_shared_emulator "$emu_pid" "$serial"
 echo "$serial"
 _flutter_test_env_log "Shared emulator ready: $serial"
