@@ -108,8 +108,9 @@ class FakeForegroundListeningService implements ForegroundListeningService {
   bool get isRunning => running;
 
   @override
-  Future<void> start({required String notificationText}) async {
+  Future<bool> start({required String notificationText}) async {
     running = true;
+    return true;
   }
 
   @override
@@ -177,7 +178,7 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          'id': 'sess-1',
+          'session_id': 'sess-1',
           'session_status': 'active',
         },
       }),

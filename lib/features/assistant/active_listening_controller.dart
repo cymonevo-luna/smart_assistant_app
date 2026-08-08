@@ -156,9 +156,15 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
     _startingMonitoring = true;
     _wakeWordHandledForUtterance = false;
 
-    await foregroundService.start(
+    final foregroundStarted = await foregroundService.start(
       notificationText: 'Listening for $_currentWakeWord…',
     );
+
+    if (!foregroundStarted) {
+      _startingMonitoring = false;
+      state = state.copyWith(mode: ActiveListeningMode.idle);
+      return;
+    }
 
     if (stt.isContinuousListening) {
       _startingMonitoring = false;

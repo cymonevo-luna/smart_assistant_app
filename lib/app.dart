@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,21 +23,23 @@ class App extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
-    return MaterialApp.router(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(theme.accent),
-      darkTheme: AppTheme.dark(theme.accent),
-      themeMode: theme.mode,
-      locale: locale,
-      supportedLocales: kSupportedLocales,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      routerConfig: appRouter,
+    return WithForegroundTask(
+      child: MaterialApp.router(
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(theme.accent),
+        darkTheme: AppTheme.dark(theme.accent),
+        themeMode: theme.mode,
+        locale: locale,
+        supportedLocales: kSupportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        routerConfig: appRouter,
+      ),
     );
   }
 }
