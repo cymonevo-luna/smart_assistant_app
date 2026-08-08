@@ -29,7 +29,6 @@ RUN apt-get update \
 
 RUN curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
         -o /tmp/flutter.tar.xz \
-    && mkdir -p /opt/flutter \
     && tar -xf /tmp/flutter.tar.xz -C /opt \
     && rm /tmp/flutter.tar.xz \
     && git config --global --add safe.directory /opt/flutter \
@@ -37,24 +36,25 @@ RUN curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/st
     && flutter config --no-analytics \
     && flutter precache --android
 
-RUN mkdir -p "${ANDROID_HOME}/cmdline-tools" \
+RUN groupadd -g 1000 ubuntu || true \
+    && useradd -m -u 1000 -g 1000 -s /bin/bash ubuntu || true \
+    && mkdir -p "${ANDROID_HOME}/cmdline-tools" \
     && curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS_VERSION}_latest.zip" \
         -o /tmp/cmdline-tools.zip \
     && unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools \
     && mv /tmp/cmdline-tools/cmdline-tools "${ANDROID_HOME}/cmdline-tools/latest" \
     && rm -rf /tmp/cmdline-tools /tmp/cmdline-tools.zip \
+    && set +o pipefail \
     && yes | sdkmanager --licenses >/dev/null \
+    && set -o pipefail \
     && sdkmanager --install \
         "platform-tools" \
         "emulator" \
         "build-tools;34.0.0" \
         "platforms;android-34" \
         "platforms;android-36" \
-    && test -d "${ANDROID_HOME}/platform-tools" \
-    && test -d "${ANDROID_HOME}/emulator"
-
-RUN groupadd -g 1000 ubuntu || true \
-    && useradd -m -u 1000 -g 1000 -s /bin/bash ubuntu || true \
+    && test -x "${ANDROID_HOME}/platform-tools/adb" \
+    && test -x "${ANDROID_HOME}/emulator/emulator" \
     && chown -R ubuntu:ubuntu /opt/flutter "${ANDROID_HOME}"
 
 USER ubuntu
