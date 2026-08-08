@@ -186,8 +186,13 @@ class ActiveListeningController extends Notifier<ActiveListeningState> {
     if (foregroundService == null) return false;
 
     _attachTaskDataCallback();
-    await foregroundService.start(notificationText: 'Listening for "${state.wakeWord}"…');
-    return foregroundService.isRunning;
+    final started = await foregroundService.start(
+      notificationText: 'Listening for "${state.wakeWord}"…',
+    );
+    if (!started) {
+      _detachTaskDataCallback();
+    }
+    return started;
   }
 
   Future<bool> _startIosMonitoring() async {

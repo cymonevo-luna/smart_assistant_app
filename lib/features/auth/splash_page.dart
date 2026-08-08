@@ -10,7 +10,7 @@ import '../../shared/widgets/widgets.dart';
 import 'auth_controller.dart';
 
 /// Clean startup screen: shows the brand mark while the auth session is
-/// restored, then routes to Home (token found) or Login.
+/// restored, then routes to Assistant (token found) or Login.
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -36,7 +36,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     if (!mounted) return;
 
     final authed = ref.read(authProvider).isAuthenticated;
-    context.goNamed(authed ? AppRoute.home.name : AppRoute.login.name);
+    context.goNamed(authed ? AppRoute.assistant.name : AppRoute.login.name);
   }
 
   @override

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/widgets.dart';
 import '../auth/auth_controller.dart';
@@ -16,8 +15,8 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final user = ref.watch(authProvider.select((s) => s.user));
-    final name = user?.name ?? 'Alex Johnson';
-    final email = user?.email ?? 'alex@example.com';
+    final name = user?.name ?? '';
+    final email = user?.email ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -38,52 +37,22 @@ class ProfilePage extends ConsumerWidget {
           Center(
             child: Column(
               children: [
-                AppAvatar(name: name, imageUrl: user?.avatarUrl),
+                AppAvatar(name: name.isEmpty ? '?' : name, imageUrl: user?.avatarUrl),
                 const VGap(AppSpacing.md),
-                AppText(
-                  name,
-                  variant: AppTextVariant.titleLarge,
-                  weight: FontWeight.w700,
-                ),
-                const VGap(AppSpacing.xxs),
-                AppText.body(email, muted: true),
+                if (name.isNotEmpty)
+                  AppText(
+                    name,
+                    variant: AppTextVariant.titleLarge,
+                    weight: FontWeight.w700,
+                  ),
+                if (email.isNotEmpty) ...[
+                  if (name.isNotEmpty) const VGap(AppSpacing.xxs),
+                  AppText.body(email, muted: true),
+                ],
               ],
             ),
           ),
-          const VGap(AppSpacing.lg),
-          _StatsCard(l10n: l10n),
-          const VGap(AppSpacing.lg),
-          AppCard(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Column(
-              children: [
-                AppListTile(
-                  icon: Icons.person_outline,
-                  title: l10n.myProfile,
-                  onTap: () {},
-                ),
-                _divider(),
-                AppListTile(
-                  icon: Icons.emoji_events_outlined,
-                  title: l10n.achievements,
-                  onTap: () {},
-                ),
-                _divider(),
-                AppListTile(
-                  icon: Icons.history,
-                  title: l10n.activityHistory,
-                  onTap: () {},
-                ),
-                _divider(),
-                AppListTile(
-                  icon: Icons.bookmark_border,
-                  title: l10n.savedItems,
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-          const VGap(AppSpacing.lg),
+          const VGap(AppSpacing.xl),
           AppButton(
             l10n.logout,
             icon: Icons.logout,
@@ -95,68 +64,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _divider() => const Divider(
-        indent: AppSpacing.md,
-        endIndent: AppSpacing.md,
-      );
-
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authProvider.notifier).logout();
     if (context.mounted) context.goNamed(AppRoute.login.name);
-  }
-}
-
-class _StatsCard extends StatelessWidget {
-  const _StatsCard({required this.l10n});
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Row(
-        children: [
-          _Stat(value: '12', label: l10n.projects),
-          _StatDivider(),
-          _Stat(value: '48', label: l10n.tasks),
-          _StatDivider(),
-          _Stat(value: '85%', label: l10n.completed),
-        ],
-      ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          AppText(
-            value,
-            variant: AppTextVariant.headlineSmall,
-            weight: FontWeight.w700,
-            color: context.colors.primary,
-          ),
-          const VGap(AppSpacing.xxs),
-          AppText.caption(label, maxLines: 1),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      width: 1,
-      color: context.tokens.border,
-    );
   }
 }
