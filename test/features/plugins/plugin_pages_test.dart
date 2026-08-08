@@ -7,11 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
+import 'package:smart_assistant_app/core/router/app_router.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
 import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
+import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
+import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
@@ -29,6 +32,23 @@ Widget _materialApp(Widget home) {
   );
 }
 
+Widget _routerApp() {
+  return MaterialApp.router(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    routerConfig: appRouter,
+  );
+}
+
+class _FakePluginAuthUrlLauncher implements PluginAuthUrlLauncher {
+  @override
+  Future<bool> launchAuthorizationUrl(String url) async => true;
+}
+
 void main() {
   late DioAdapter adapter;
 
@@ -42,7 +62,9 @@ void main() {
       ..registerSingleton<PreferencesService>(prefs)
       ..registerSingleton<SecureStorageService>(FakeSecureStorage())
       ..registerSingleton<ApiClient>(mocked.client)
-      ..registerSingleton<PluginRepository>(PluginRepository(mocked.client));
+      ..registerSingleton<PluginRepository>(PluginRepository(mocked.client))
+      ..registerSingleton<PluginAuthUrlLauncher>(_FakePluginAuthUrlLauncher())
+      ..registerSingleton<PluginSetupDeepLinkService>(PluginSetupDeepLinkService());
   });
 
   ProviderScope scope(Widget child) {
@@ -185,6 +207,41 @@ void main() {
       deleteMatchers.last.request.route,
       '${PluginRepository.installedPath}/plugin-1',
     );
+  });
+
+  testWidgets('setup badge navigates to PluginSetupPage', (WidgetTester tester) async {
+    mockCatalog();
+    final installed = nestedInstalledPlugin(
+      id: 'plugin-calendar',
+      slug: 'google-calendar',
+      name: 'Google Calendar',
+      setupStatus: 'not_started',
+    );
+    adapter.onGet(
+      PluginRepository.installedPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': [installed],
+      }),
+    );
+
+    appRouter.go(AppRoute.managePlugins.path);
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Setup needed'), findsOneWidget);
+    expect(
+      find.text('Some plugins need setup before they can be used.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Setup needed'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plugin Setup'), findsOneWidget);
+    expect(find.byKey(const ValueKey('connect_google_account')), findsOneWidget);
+    expect(find.text('Connect Google Account'), findsOneWidget);
   });
 
   testWidgets('toggle enable calls PATCH', (WidgetTester tester) async {

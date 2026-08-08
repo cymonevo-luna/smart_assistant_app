@@ -81,7 +81,19 @@ void main() {
     );
   }
 
+  void mockCatalogEmpty() {
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
+  }
+
   void mockInstalled({Map<String, dynamic>? plugin}) {
+    mockCatalogEmpty();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
