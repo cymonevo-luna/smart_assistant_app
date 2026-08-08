@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 
+import '../../features/assistant/data/assistant_settings_repository.dart';
 import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../storage/preferences_service.dart';
@@ -31,4 +32,7 @@ Future<void> setupLocator() async {
   if (savedToken != null) apiClient.setAuthToken(savedToken);
 
   locator.registerSingleton<ApiClient>(apiClient);
+  locator.registerSingleton<AssistantSettingsRepository>(
+    AssistantSettingsRepository(apiClient, prefs),
+  );
 }

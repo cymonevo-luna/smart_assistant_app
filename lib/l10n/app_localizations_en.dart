@@ -177,4 +177,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get assistant => 'Assistant';
+
+  @override
+  String get wakeWord => 'Wake word';
+
+  @override
+  String get activeListening => 'Active listening';
+
+  @override
+  String get activeListeningSubtitle =>
+      'Keeps the microphone active to detect your wake word. May increase battery usage.';
+
+  @override
+  String get wakeWordRequired => 'Wake word cannot be empty';
+
+  @override
+  String get assistantSettingsSaveFailed =>
+      'Could not save settings. Showing cached values.';
 }

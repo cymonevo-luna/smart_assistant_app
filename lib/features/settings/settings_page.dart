@@ -6,6 +6,7 @@ import '../../core/theme/app_palette.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../features/assistant/widgets/assistant_settings_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/widgets.dart';
 
@@ -60,6 +61,10 @@ class SettingsPage extends ConsumerWidget {
               ],
             ),
           ),
+          const VGap(AppSpacing.lg),
+          AppSectionHeader(title: l10n.assistant),
+          const VGap(AppSpacing.sm),
+          const AssistantSettingsSection(),
           const VGap(AppSpacing.lg),
           AppSectionHeader(title: l10n.preferences),
           const VGap(AppSpacing.sm),
