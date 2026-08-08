@@ -6,6 +6,7 @@ import 'core/localization/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'features/assistant/active_listening_controller.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
 import 'l10n/app_localizations.dart';
 
@@ -17,6 +18,7 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(speechToTextInitializationProvider);
+    ref.watch(activeListeningControllerProvider);
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 

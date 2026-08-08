@@ -201,6 +201,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wakeWordRequired => 'Wake word cannot be empty';
 
   @override
+  String listeningForWakeWord(String wakeWord) {
+    return 'Listening for $wakeWord…';
+  }
+
+  @override
   String get assistantSettingsSaveFailed =>
       'Could not save settings. Showing cached values.';
 

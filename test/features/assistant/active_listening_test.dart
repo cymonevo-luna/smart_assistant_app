@@ -16,27 +16,12 @@ import 'package:smart_assistant_app/features/assistant/assistant_settings_provid
 import 'package:smart_assistant_app/features/assistant/data/assistant_repository.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
 import 'package:smart_assistant_app/features/assistant/pages/assistant_page.dart';
+import 'package:smart_assistant_app/features/assistant/services/foreground_listening_service.dart';
 import 'package:smart_assistant_app/features/assistant/services/speech_to_text_service.dart';
 import 'package:smart_assistant_app/features/assistant/services/text_to_speech_service.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
-
-class _IdleActiveListeningController extends ActiveListeningController {
-  @override
-  ActiveListeningState build() {
-    return const ActiveListeningState(activeListeningEnabled: false);
-  }
-}
-
-class _FakeAssistantSettingsNotifier extends AssistantSettingsNotifier {
-  _FakeAssistantSettingsNotifier(this._settings);
-
-  final AssistantSettings _settings;
-
-  @override
-  Future<AssistantSettings> build() async => _settings;
-}
 
 class FakeSpeechRecognizer implements SpeechRecognizer {
   FakeSpeechRecognizer({this.available = true});
@@ -116,6 +101,32 @@ class FakeTextToSpeechEngine implements TextToSpeechEngine {
   }
 }
 
+class FakeForegroundListeningService implements ForegroundListeningService {
+  bool running = false;
+
+  @override
+  bool get isRunning => running;
+
+  @override
+  Future<void> start({required String notificationText}) async {
+    running = true;
+  }
+
+  @override
+  Future<void> stop() async {
+    running = false;
+  }
+}
+
+class _FakeAssistantSettingsNotifier extends AssistantSettingsNotifier {
+  _FakeAssistantSettingsNotifier(this._settings);
+
+  final AssistantSettings _settings;
+
+  @override
+  Future<AssistantSettings> build() async => _settings;
+}
+
 Widget _materialApp(Widget home) {
   return MaterialApp(
     localizationsDelegates: const [
@@ -128,10 +139,21 @@ Widget _materialApp(Widget home) {
   );
 }
 
+class _ActiveListeningHarness extends ConsumerWidget {
+  const _ActiveListeningHarness();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(activeListeningControllerProvider);
+    return const AssistantPage();
+  }
+}
+
 void main() {
   late DioAdapter adapter;
   late FakeSpeechRecognizer recognizer;
   late FakeTextToSpeechEngine ttsEngine;
+  late FakeForegroundListeningService foregroundService;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -141,6 +163,7 @@ void main() {
     adapter = mocked.adapter;
     recognizer = FakeSpeechRecognizer();
     ttsEngine = FakeTextToSpeechEngine();
+    foregroundService = FakeForegroundListeningService();
 
     locator
       ..registerSingleton<PreferencesService>(prefs)
@@ -154,26 +177,22 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          'session_id': 'sess-1',
+          'id': 'sess-1',
+          'session_status': 'active',
         },
       }),
     );
   });
 
-  Future<void> pumpAssistantPage(WidgetTester tester) async {
+  Future<void> pumpHarness(
+    WidgetTester tester, {
+    required AssistantSettings settings,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           assistantSettingsProvider.overrideWith(
-            () => _FakeAssistantSettingsNotifier(
-              const AssistantSettings(
-                wakeWord: 'Jarvis',
-                activeListeningEnabled: false,
-              ),
-            ),
-          ),
-          activeListeningControllerProvider.overrideWith(
-            _IdleActiveListeningController.new,
+            () => _FakeAssistantSettingsNotifier(settings),
           ),
           speechToTextServiceProvider.overrideWithValue(
             SpeechToTextService(
@@ -184,14 +203,47 @@ void main() {
           textToSpeechServiceProvider.overrideWithValue(
             TextToSpeechService(engine: ttsEngine),
           ),
+          foregroundListeningServiceProvider.overrideWithValue(
+            foregroundService,
+          ),
         ],
-        child: _materialApp(const AssistantPage()),
+        child: _materialApp(const _ActiveListeningHarness()),
       ),
     );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('mic press triggers STT and API call', (tester) async {
+  testWidgets('active listening off ignores wake word transcript', (
+    tester,
+  ) async {
+    await pumpHarness(
+      tester,
+      settings: const AssistantSettings(
+        wakeWord: 'Jarvis',
+        activeListeningEnabled: false,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+
+    final historyBefore = adapter.history.length;
+
+    recognizer.emitFinal('Jarvis hello');
+    await tester.pumpAndSettle();
+
+    final messagePosts = adapter.history
+        .skip(historyBefore)
+        .where(
+          (h) =>
+              h.request.method?.name == 'POST' &&
+              h.request.route == '/api/v1/assistant/sessions/sess-1/messages',
+        );
+    expect(messagePosts, isEmpty);
+    expect(foregroundService.running, isFalse);
+  });
+
+  testWidgets('active listening on triggers wake word API call', (
+    tester,
+  ) async {
     adapter.onPost(
       '/api/v1/assistant/sessions/sess-1/messages',
       (server) => server.reply(200, {
@@ -199,22 +251,33 @@ void main() {
         'data': {
           'reply': {
             'type': 'text',
-            'text': 'Hi there',
+            'text': 'Scheduled',
           },
           'session_status': 'active',
         },
       }),
       data: {
-        'text': 'Hello',
-        'source': 'button',
+        'text': 'schedule meeting',
+        'source': 'wake_word',
       },
     );
 
-    await pumpAssistantPage(tester);
+    await pumpHarness(
+      tester,
+      settings: const AssistantSettings(
+        wakeWord: 'Jarvis',
+        activeListeningEnabled: true,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
 
-    await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
-    await tester.pump();
-    recognizer.emitFinal('Hello');
+    expect(foregroundService.running, isTrue);
+    expect(
+      find.byKey(const ValueKey('assistant_active_listening_chip')),
+      findsOneWidget,
+    );
+
+    recognizer.emitFinal('Jarvis schedule meeting');
     await tester.pumpAndSettle();
 
     final postMatchers = adapter.history.where(
@@ -224,72 +287,9 @@ void main() {
     );
     expect(postMatchers, isNotEmpty);
     expect(postMatchers.last.request.data, {
-      'text': 'Hello',
-      'source': 'button',
+      'text': 'schedule meeting',
+      'source': 'wake_word',
     });
-  });
-
-  testWidgets('assistant reply rendered and spoken', (tester) async {
-    adapter.onPost(
-      '/api/v1/assistant/sessions/sess-1/messages',
-      (server) => server.reply(200, {
-        'success': true,
-        'data': {
-          'reply': {
-            'type': 'text',
-            'text': 'Done',
-          },
-          'session_status': 'active',
-        },
-      }),
-      data: {
-        'text': 'Hello',
-        'source': 'button',
-      },
-    );
-
-    await pumpAssistantPage(tester);
-
-    await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
-    await tester.pump();
-    recognizer.emitFinal('Hello');
-    await tester.pumpAndSettle();
-
-    expect(find.text('Done'), findsOneWidget);
-    expect(ttsEngine.spokenTexts, ['Done']);
-  });
-
-  testWidgets('follow-up question displayed with mic enabled', (tester) async {
-    adapter.onPost(
-      '/api/v1/assistant/sessions/sess-1/messages',
-      (server) => server.reply(200, {
-        'success': true,
-        'data': {
-          'reply': {
-            'type': 'follow_up',
-            'text': 'Which room?',
-          },
-          'session_status': 'active',
-        },
-      }),
-      data: {
-        'text': 'Turn on the lights',
-        'source': 'button',
-      },
-    );
-
-    await pumpAssistantPage(tester);
-
-    await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
-    await tester.pump();
-    recognizer.emitFinal('Turn on the lights');
-    await tester.pumpAndSettle();
-
-    expect(find.text('Which room?'), findsOneWidget);
-
-    final mic = tester.widget<InkWell>(
-      find.byKey(const ValueKey('assistant_mic_button')),
-    );
-    expect(mic.onTap, isNotNull);
+    expect(find.text('Scheduled'), findsOneWidget);
   });
 }

@@ -54,6 +54,7 @@ abstract class SpeechRecognizer {
 
   Future<void> listen({
     required void Function(SpeechRecognitionResult result) onResult,
+    ListenMode listenMode = ListenMode.confirmation,
   });
 
   Future<void> stop();
@@ -85,12 +86,13 @@ class PlatformSpeechRecognizer implements SpeechRecognizer {
   @override
   Future<void> listen({
     required void Function(SpeechRecognitionResult result) onResult,
+    ListenMode listenMode = ListenMode.confirmation,
   }) {
     return _speech.listen(
       onResult: onResult,
       listenOptions: SpeechListenOptions(
         partialResults: true,
-        listenMode: ListenMode.confirmation,
+        listenMode: listenMode,
       ),
     );
   }
@@ -130,6 +132,7 @@ class SpeechToTextService {
   Future<void> _initialize() async {
     _error = null;
     final ready = await _recognizer.initialize(
+      onStatus: _onRecognizerStatus,
       onError: (error) {
         _error = SpeechToTextError(
           code: SpeechToTextErrorCode.listenFailed,
@@ -146,23 +149,48 @@ class SpeechToTextService {
     }
   }
 
-  /// Requests microphone permission. Returns `true` when granted.
-  Future<bool> requestMicPermission() async {
-    _error = null;
-    final status = await _permissionClient.request();
-    if (status.isGranted) return true;
+  bool _continuousListening = false;
+  void Function(String transcript, bool isFinal)? _continuousCallback;
+  ListenMode _continuousListenMode = ListenMode.dictation;
+  bool _restartPending = false;
 
-    _error = const SpeechToTextError(
-      code: SpeechToTextErrorCode.permissionDenied,
-      message: 'Microphone permission is required for voice input.',
-    );
-    return false;
+  /// Whether continuous background-friendly listening is active.
+  bool get isContinuousListening => _continuousListening;
+
+  void _onRecognizerStatus(String status) {
+    if (!_continuousListening || _continuousCallback == null) return;
+    if (status == 'done' || status == 'notListening') {
+      if (_restartPending || _recognizer.isListening) return;
+      _restartPending = true;
+      Future.microtask(_restartContinuousListening);
+    }
   }
 
-  /// Starts listening and forwards partial then final transcript strings.
-  Future<bool> startListening({
-    required void Function(String transcript) onPartial,
-    required void Function(String transcript) onFinal,
+  Future<void> _restartContinuousListening() async {
+    _restartPending = false;
+    if (!_continuousListening || _continuousCallback == null) return;
+    if (_recognizer.isListening) return;
+
+    try {
+      await _recognizer.listen(
+        listenMode: _continuousListenMode,
+        onResult: (result) {
+          final callback = _continuousCallback;
+          if (callback == null) return;
+          callback(result.recognizedWords, result.finalResult);
+        },
+      );
+    } catch (e) {
+      _error = SpeechToTextError(
+        code: SpeechToTextErrorCode.listenFailed,
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<bool> _beginListening({
+    required ListenMode listenMode,
+    required void Function(SpeechRecognitionResult result) onResult,
   }) async {
     _error = null;
 
@@ -185,13 +213,8 @@ class SpeechToTextService {
 
     try {
       await _recognizer.listen(
-        onResult: (result) {
-          if (result.finalResult) {
-            onFinal(result.recognizedWords);
-          } else {
-            onPartial(result.recognizedWords);
-          }
-        },
+        listenMode: listenMode,
+        onResult: onResult,
       );
       return true;
     } catch (e) {
@@ -201,6 +224,62 @@ class SpeechToTextService {
       );
       return false;
     }
+  }
+
+  /// Requests microphone permission. Returns `true` when granted.
+  Future<bool> requestMicPermission() async {
+    _error = null;
+    final status = await _permissionClient.request();
+    if (status.isGranted) return true;
+
+    _error = const SpeechToTextError(
+      code: SpeechToTextErrorCode.permissionDenied,
+      message: 'Microphone permission is required for voice input.',
+    );
+    return false;
+  }
+
+  /// Starts listening and forwards partial then final transcript strings.
+  Future<bool> startListening({
+    required void Function(String transcript) onPartial,
+    required void Function(String transcript) onFinal,
+  }) async {
+    return _beginListening(
+      listenMode: ListenMode.confirmation,
+      onResult: (result) {
+        if (result.finalResult) {
+          onFinal(result.recognizedWords);
+        } else {
+          onPartial(result.recognizedWords);
+        }
+      },
+    );
+  }
+
+  /// Starts continuous listening for wake-word monitoring. Automatically
+  /// restarts after each recognition session while active.
+  Future<bool> startContinuousListening({
+    required void Function(String transcript, bool isFinal) onTranscript,
+    ListenMode listenMode = ListenMode.dictation,
+  }) async {
+    _continuousListening = true;
+    _continuousCallback = onTranscript;
+    _continuousListenMode = listenMode;
+
+    return _beginListening(
+      listenMode: listenMode,
+      onResult: (result) {
+        onTranscript(result.recognizedWords, result.finalResult);
+      },
+    );
+  }
+
+  /// Stops continuous listening and clears the transcript callback.
+  Future<void> stopContinuousListening() async {
+    _continuousListening = false;
+    _continuousCallback = null;
+    _restartPending = false;
+    await stopListening();
   }
 
   Future<void> stopListening() async {
