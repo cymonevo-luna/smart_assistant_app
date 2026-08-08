@@ -15,6 +15,7 @@ import 'features/assistant/services/speech_to_text_service.dart';
 import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
+import 'features/reminders/widgets/reminder_sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root widget. Rebuilds [MaterialApp] whenever the theme or locale providers
@@ -44,7 +45,8 @@ class _AppState extends ConsumerState<App> {
     final locale = ref.watch(localeProvider);
 
     return WithForegroundTask(
-      child: MaterialApp.router(
+      child: ReminderSyncLifecycle(
+        child: MaterialApp.router(
         onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(theme.accent),
@@ -64,6 +66,7 @@ class _AppState extends ConsumerState<App> {
             child: child ?? const SizedBox.shrink(),
           );
         },
+        ),
       ),
     );
   }

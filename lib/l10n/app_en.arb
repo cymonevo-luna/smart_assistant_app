@@ -143,5 +143,9 @@
   "pluginSetupFailed": "Setup could not be completed.",
   "pluginSetupRetry": "Try again",
   "pluginsSetupIncompleteBanner": "Some plugins need setup before they can be used.",
-  "openInBrowser": "Open in browser"
+  "openInBrowser": "Open in browser",
+  "reminderNotificationsTitle": "Reminder notifications",
+  "reminderNotificationsDescription": "Reminder notifications are enabled when the Reminder plugin is installed. The app syncs reminders from your account and shows local alerts at the scheduled time.",
+  "reminderNotificationsRequestPermission": "Check notification permission",
+  "reminderNotificationsPermissionRequested": "Notification permission checked. Reminders will sync when allowed."
 }

@@ -52,7 +52,8 @@ class SettingsPage extends ConsumerWidget {
                 AppListTile(
                   icon: Icons.notifications_outlined,
                   title: l10n.notifications,
-                  onTap: () {},
+                  onTap: () =>
+                      context.pushNamed(AppRoute.reminderNotifications.name),
                 ),
                 _divider(),
                 AppListTile(

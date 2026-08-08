@@ -8,6 +8,7 @@ import 'core/config/app_config.dart';
 import 'core/di/locator.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/timezone/timezone_initializer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,7 @@ Future<void> main() async {
 
   // Load environment config (.env) and register services.
   await AppConfig.load();
+  await initializeLocalTimeZone();
   await setupLocator();
 
   // Each app sets its brand color here; users can still change it at runtime.

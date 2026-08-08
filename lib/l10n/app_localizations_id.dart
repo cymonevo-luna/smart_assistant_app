@@ -334,4 +334,19 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get openInBrowser => 'Buka di browser';
+
+  @override
+  String get reminderNotificationsTitle => 'Notifikasi pengingat';
+
+  @override
+  String get reminderNotificationsDescription =>
+      'Notifikasi pengingat aktif saat plugin Reminder terpasang. Aplikasi menyinkronkan pengingat dari akunmu dan menampilkan peringatan lokal pada waktu yang dijadwalkan.';
+
+  @override
+  String get reminderNotificationsRequestPermission =>
+      'Periksa izin notifikasi';
+
+  @override
+  String get reminderNotificationsPermissionRequested =>
+      'Izin notifikasi diperiksa. Pengingat akan disinkronkan jika diizinkan.';
 }

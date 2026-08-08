@@ -8,6 +8,7 @@ import '../../features/auth/splash_page.dart';
 import '../../features/plugins/pages/manage_plugins_page.dart';
 import '../../features/plugins/pages/plugin_setup_page.dart';
 import '../../features/profile/profile_page.dart';
+import '../../features/reminders/pages/reminder_notifications_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
@@ -20,6 +21,7 @@ enum AppRoute {
   assistant('/assistant'),
   profile('/profile'),
   settings('/settings'),
+  reminderNotifications('/settings/notifications'),
   managePlugins('/plugins'),
   pluginStore('/plugins/store'),
   pluginSetup('/plugins/:id/setup');
@@ -87,6 +89,12 @@ final GoRouter appRouter = GoRouter(
       name: AppRoute.settings.name,
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: AppRoute.reminderNotifications.path,
+      name: AppRoute.reminderNotifications.name,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ReminderNotificationsPage(),
     ),
     GoRoute(
       path: AppRoute.pluginStore.path,
