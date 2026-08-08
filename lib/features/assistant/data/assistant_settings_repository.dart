@@ -9,6 +9,7 @@ class AssistantSettingsRepository {
   final PreferencesService _prefs;
 
   static const defaultWakeWord = 'Jarvis';
+  static const defaultLocationReminderThresholdMeters = 100;
 
   Future<AssistantSettings> fetchSettings() async {
     final settings = await _api.get<AssistantSettings>(
@@ -22,12 +23,14 @@ class AssistantSettingsRepository {
   Future<AssistantSettings> updateSettings({
     required String wakeWord,
     required bool activeListeningEnabled,
+    required int locationReminderThresholdMeters,
   }) async {
     final settings = await _api.put<AssistantSettings>(
       '/api/v1/assistant/settings',
       body: {
         'wake_word': wakeWord,
         'active_listening_enabled': activeListeningEnabled,
+        'location_reminder_threshold_meters': locationReminderThresholdMeters,
       },
       decoder: (raw) => AssistantSettings.fromJson(_unwrap(raw)),
     );
@@ -40,9 +43,14 @@ class AssistantSettingsRepository {
         defaultWakeWord;
     final activeListening = _prefs.getBool(PrefKeys.assistantActiveListening) ??
         false;
+    final locationReminderThreshold = _prefs.getInt(
+          PrefKeys.assistantLocationReminderThreshold,
+        ) ??
+        defaultLocationReminderThresholdMeters;
     return AssistantSettings(
       wakeWord: wakeWord,
       activeListeningEnabled: activeListening,
+      locationReminderThresholdMeters: locationReminderThreshold,
     );
   }
 
@@ -51,6 +59,10 @@ class AssistantSettingsRepository {
     await _prefs.setBool(
       PrefKeys.assistantActiveListening,
       settings.activeListeningEnabled,
+    );
+    await _prefs.setInt(
+      PrefKeys.assistantLocationReminderThreshold,
+      settings.locationReminderThresholdMeters,
     );
   }
 
