@@ -133,8 +133,7 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          'id': 'sess-1',
-          'session_status': 'active',
+          'session_id': 'sess-1',
         },
       }),
     );

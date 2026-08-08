@@ -16,9 +16,10 @@ enum AssistantSessionStatus {
 @freezed
 abstract class AssistantSession with _$AssistantSession {
   const factory AssistantSession({
-    required String id,
+    @JsonKey(name: 'session_id') required String id,
     @JsonKey(name: 'session_status')
-    required AssistantSessionStatus sessionStatus,
+    @Default(AssistantSessionStatus.active)
+    AssistantSessionStatus sessionStatus,
   }) = _AssistantSession;
 
   factory AssistantSession.fromJson(Map<String, dynamic> json) =>

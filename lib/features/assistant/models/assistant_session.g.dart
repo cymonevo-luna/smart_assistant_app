@@ -8,17 +8,19 @@ part of 'assistant_session.dart';
 
 _AssistantSession _$AssistantSessionFromJson(Map<String, dynamic> json) =>
     _AssistantSession(
-      id: json['id'] as String,
-      sessionStatus: $enumDecode(
-        _$AssistantSessionStatusEnumMap,
-        json['session_status'],
-      ),
+      id: json['session_id'] as String,
+      sessionStatus:
+          $enumDecodeNullable(
+            _$AssistantSessionStatusEnumMap,
+            json['session_status'],
+          ) ??
+          AssistantSessionStatus.active,
     );
 
 Map<String, dynamic> _$AssistantSessionToJson(
   _AssistantSession instance,
 ) => <String, dynamic>{
-  'id': instance.id,
+  'session_id': instance.id,
   'session_status': _$AssistantSessionStatusEnumMap[instance.sessionStatus]!,
 };
 
