@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
+import 'package:smart_assistant_app/core/router/app_router.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/assistant/assistant_settings_provider.dart';
 import 'package:smart_assistant_app/features/assistant/data/assistant_settings_repository.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
+import 'package:smart_assistant_app/features/auth/auth_controller.dart';
+import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
+import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
 import 'package:smart_assistant_app/features/settings/settings_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
@@ -26,6 +31,36 @@ Widget _materialApp(Widget home) {
     ],
     supportedLocales: AppLocalizations.supportedLocales,
     home: home,
+  );
+}
+
+Widget _routerApp(GoRouter router) {
+  return MaterialApp.router(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    routerConfig: router,
+  );
+}
+
+GoRouter _pluginsNavigationRouter() {
+  return GoRouter(
+    initialLocation: AppRoute.settings.path,
+    routes: [
+      GoRoute(
+        path: AppRoute.settings.path,
+        name: AppRoute.settings.name,
+        builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: AppRoute.myPlugins.path,
+        name: AppRoute.myPlugins.name,
+        builder: (context, state) => const MyPluginsPage(),
+      ),
+    ],
   );
 }
 
@@ -151,6 +186,67 @@ void main() {
     final field = tester.widget<TextFormField>(find.byType(TextFormField));
     expect(field.enabled, isFalse);
   });
+
+  testWidgets('settings navigates to manage plugins', (WidgetTester tester) async {
+    locator.registerSingleton<PluginRepository>(PluginRepository(locator<ApiClient>()));
+
+    adapter
+      ..onGet(
+        PluginRepository.catalogPath,
+        (server) => server.reply(200, {
+          'success': true,
+          'data': [
+            {
+              'slug': 'weather',
+              'name': 'Weather',
+              'description': 'Get weather forecasts',
+            },
+          ],
+        }),
+      )
+      ..onGet(
+        PluginRepository.installedPath,
+        (server) => server.reply(200, {
+          'success': true,
+          'data': <Map<String, dynamic>>[],
+        }),
+      );
+
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith(() => _AuthenticatedAuthController()),
+          assistantSettingsProvider.overrideWith(
+            () => _FakeAssistantSettingsNotifier(defaults),
+          ),
+        ],
+        child: _routerApp(_pluginsNavigationRouter()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final pluginsTile = find.text('Plugins');
+    await tester.scrollUntilVisible(
+      pluginsTile,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(pluginsTile);
+    await tester.pumpAndSettle();
+
+    expect(find.text('My Plugins'), findsOneWidget);
+  });
+}
+
+class _AuthenticatedAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 class _FakeAssistantSettingsNotifier extends AssistantSettingsNotifier {

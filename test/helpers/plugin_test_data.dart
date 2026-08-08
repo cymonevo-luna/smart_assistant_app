@@ -28,18 +28,23 @@ const installedWeather = {
 };
 
 Map<String, dynamic> nestedInstalledPlugin({
+  required String id,
   required String slug,
   required String name,
-  String? description,
   bool enabled = true,
   String setupStatus = 'not_started',
+  String? catalogId,
 }) {
   return {
-    'id': 'plugin-$slug',
-    'slug': slug,
-    'name': name,
-    'description': description ?? '',
+    'id': id,
     'enabled': enabled,
     'setup_status': setupStatus,
+    'plugin': {
+      'id': catalogId ?? 'catalog-$slug',
+      'slug': slug,
+      'name': name,
+      'required_setup': true,
+      'setup_type': 'oauth_google',
+    },
   };
 }

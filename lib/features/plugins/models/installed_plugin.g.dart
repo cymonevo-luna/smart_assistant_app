@@ -11,7 +11,7 @@ _InstalledPlugin _$InstalledPluginFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       slug: json['slug'] as String,
       name: json['name'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String? ?? '',
       enabled: json['enabled'] as bool,
       setupStatus: $enumDecode(
         _$PluginSetupStatusEnumMap,
