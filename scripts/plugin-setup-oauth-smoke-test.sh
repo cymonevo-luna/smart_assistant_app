@@ -57,7 +57,7 @@ api_smoke() {
   install_body=$(curl -sf --max-time 20 -X POST "$base/api/v1/users/me/plugins" \
     -H "Authorization: Bearer $access_token" \
     -H 'Content-Type: application/json' \
-    -d '{"slug":"google-calendar-meet"}')
+    -d '{"plugin_slug":"google-calendar-meet"}')
 
   local plugin_id
   plugin_id=$(printf '%s' "$install_body" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('id',''))")

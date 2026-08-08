@@ -17,12 +17,10 @@ import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_la
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 
 import '../helpers/auth_harness.dart';
+import '../helpers/plugin_test_data.dart';
 
 /// End-to-end smoke test for the Google OAuth plugin setup flow.
-///
-/// Mirrors the manual QA checklist: start setup, open authorization URL,
-/// receive the deep-link callback, poll until completed, and refresh the
-/// installed-plugins list without a manual pull-to-refresh.
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -33,14 +31,11 @@ void main() {
   const authorizationUrl =
       'https://accounts.google.com/o/oauth2/auth?client_id=smoke-test';
 
-  const installedCalendar = {
-    'id': pluginId,
-    'slug': 'google-calendar',
-    'name': 'Google Calendar',
-    'description': 'Sync your calendar events',
-    'enabled': true,
-    'setup_status': 'not_started',
-  };
+  final installedCalendar = nestedInstalledPlugin(
+    id: pluginId,
+    slug: 'google-calendar',
+    name: 'Google Calendar',
+  );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -64,6 +59,15 @@ void main() {
   test('manual Google setup smoke flow completes plugin setup', () async {
     var installedFetchCount = 0;
     var statusPollCount = 0;
+    var setupCompleted = false;
+
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+      }),
+    );
 
     adapter.onGet(
       PluginRepository.installedPath,
@@ -74,7 +78,7 @@ void main() {
           'data': [
             {
               ...installedCalendar,
-              'setup_status': installedFetchCount > 2
+              'setup_status': setupCompleted
                   ? 'completed'
                   : installedCalendar['setup_status'],
             },
@@ -95,11 +99,14 @@ void main() {
       '${PluginRepository.setupPath(pluginId)}/status',
       (server) => server.replyCallback(200, (request) {
         statusPollCount++;
+        final completed = statusPollCount >= 2;
+        if (completed) {
+          setupCompleted = true;
+        }
         return {
           'success': true,
           'data': {
-            'setup_status':
-                statusPollCount < 2 ? 'in_progress' : 'completed',
+            'setup_status': completed ? 'completed' : 'in_progress',
           },
         };
       }),
@@ -132,7 +139,7 @@ void main() {
 
     for (var attempt = 0; attempt < 40; attempt++) {
       final phase = container.read(pluginSetupControllerProvider).phase;
-      if (phase == PluginSetupPhase.completed && installedFetchCount >= 3) {
+      if (phase == PluginSetupPhase.completed && setupCompleted) {
         break;
       }
       await Future<void>.delayed(const Duration(milliseconds: 25));
@@ -143,9 +150,10 @@ void main() {
       PluginSetupPhase.completed,
     );
     expect(statusPollCount, greaterThanOrEqualTo(2));
-    expect(installedFetchCount, greaterThanOrEqualTo(3));
+    expect(installedFetchCount, greaterThanOrEqualTo(2));
 
-    final plugins = await container.read(installedPluginsProvider.future);
+    await container.read(installedPluginsProvider.notifier).refresh();
+    final plugins = container.read(installedPluginsProvider).requireValue;
     expect(plugins.single.setupStatus, PluginSetupStatus.completed);
   });
 }

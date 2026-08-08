@@ -16,6 +16,7 @@ import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_la
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 
 import '../../helpers/auth_harness.dart';
+import '../../helpers/plugin_test_data.dart';
 
 class _RecordingUrlLauncher implements PluginAuthUrlLauncher {
   final List<String> urls = [];
@@ -27,14 +28,12 @@ class _RecordingUrlLauncher implements PluginAuthUrlLauncher {
   }
 }
 
-const _installedCalendar = {
-  'id': 'plugin-calendar',
-  'slug': 'google-calendar',
-  'name': 'Google Calendar',
-  'description': 'Sync your calendar events',
-  'enabled': true,
-  'setup_status': 'not_started',
-};
+
+final _installedCalendar = nestedInstalledPlugin(
+  id: 'plugin-calendar',
+  slug: 'google-calendar',
+  name: 'Google Calendar',
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -142,7 +141,7 @@ void main() {
           'success': true,
           'data': [
             {
-              ..._installedCalendar,
+              ...Map<String, dynamic>.from(_installedCalendar),
               'setup_status':
                   installedFetchCount > 1 ? 'completed' : 'not_started',
             },

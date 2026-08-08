@@ -11,33 +11,11 @@ import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
-import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
-import 'package:smart_assistant_app/features/plugins/pages/plugin_store_page.dart';
+import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
-
-const _catalogPlugins = [
-  {
-    'slug': 'weather',
-    'name': 'Weather',
-    'description': 'Get weather forecasts',
-  },
-  {
-    'slug': 'calendar',
-    'name': 'Calendar Sync',
-    'description': 'Sync your calendar events',
-  },
-];
-
-const _installedWeather = {
-  'id': 'plugin-1',
-  'slug': 'weather',
-  'name': 'Weather',
-  'description': 'Get weather forecasts',
-  'enabled': true,
-  'setup_status': 'not_started',
-};
+import '../../helpers/plugin_test_data.dart';
 
 Widget _materialApp(Widget home) {
   return MaterialApp(
@@ -81,7 +59,8 @@ void main() {
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': _catalogPlugins,
+        'data': catalogPlugins,
+        'meta': {'page': 1, 'per_page': 20, 'total': 2},
       }),
     );
   }
@@ -101,7 +80,11 @@ void main() {
     mockInstalledEmpty();
 
     await tester.pumpWidget(
-      scope(_materialApp(const PluginStorePage())),
+      scope(
+        _materialApp(
+          const ManagePluginsPage(initialTab: ManagePluginsTab.available),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -125,7 +108,7 @@ void main() {
         }
         return server.reply(200, {
           'success': true,
-          'data': [_installedWeather],
+          'data': [installedWeather],
         });
       },
     );
@@ -133,13 +116,17 @@ void main() {
       PluginRepository.installedPath,
       (server) => server.reply(201, {
         'success': true,
-        'data': _installedWeather,
+        'data': installedWeather,
       }),
-      data: {'slug': 'weather'},
+      data: {'plugin_slug': 'weather'},
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const PluginStorePage())),
+      scope(
+        _materialApp(
+          const ManagePluginsPage(initialTab: ManagePluginsTab.available),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -150,10 +137,10 @@ void main() {
       (h) => h.request.method?.name == 'POST',
     );
     expect(postMatchers, isNotEmpty);
-    expect(postMatchers.last.request.data, {'slug': 'weather'});
+    expect(postMatchers.last.request.data, {'plugin_slug': 'weather'});
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -162,11 +149,12 @@ void main() {
   });
 
   testWidgets('uninstall with confirmation', (WidgetTester tester) async {
+    mockCatalog();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': [_installedWeather],
+        'data': [installedWeather],
       }),
     );
     adapter.onDelete(
@@ -175,7 +163,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -200,11 +188,12 @@ void main() {
   });
 
   testWidgets('toggle enable calls PATCH', (WidgetTester tester) async {
+    mockCatalog();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': [_installedWeather],
+        'data': [installedWeather],
       }),
     );
     adapter.onPatch(
@@ -212,7 +201,7 @@ void main() {
       (server) => server.reply(200, {
         'success': true,
         'data': {
-          ..._installedWeather,
+          ...installedWeather,
           'enabled': false,
         },
       }),
@@ -220,7 +209,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
