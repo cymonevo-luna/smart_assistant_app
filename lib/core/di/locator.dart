@@ -10,6 +10,7 @@ import '../../features/reminders/reminder_registration_service.dart';
 import '../../features/plugins/data/plugin_repository.dart';
 import '../../features/plugins/services/plugin_auth_url_launcher.dart';
 import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
+import '../../features/reminders/services/reminder_notification_service.dart';
 import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../storage/preferences_service.dart';
@@ -71,5 +72,8 @@ Future<void> setupLocator() async {
       locationService: locator<LocationService>(),
       locationMonitorService: locator<LocationMonitorService>(),
     ),
+  );
+  locator.registerSingleton<ReminderNotificationService>(
+    ReminderNotificationService(),
   );
 }

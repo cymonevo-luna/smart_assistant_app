@@ -9,6 +9,7 @@ import 'core/di/locator.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/assistant/services/assistant_widget_init.dart';
+import 'features/reminders/services/reminder_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ Future<void> main() async {
   // Load environment config (.env) and register services.
   await AppConfig.load();
   await setupLocator();
+  await locator<ReminderNotificationService>().initialize();
 
   // Each app sets its brand color here; users can still change it at runtime.
   final app = ProviderScope(
