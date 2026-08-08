@@ -62,7 +62,8 @@ export ANDROID_HOME="/home/ubuntu/Android/Sdk"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export PATH="/opt/flutter/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 EOF
-    && chmod 644 /etc/profile.d/luna-flutter-android.sh \
+
+RUN chmod 644 /etc/profile.d/luna-flutter-android.sh \
     && ln -sf /opt/flutter/bin/flutter /usr/local/bin/flutter \
     && ln -sf /opt/flutter/bin/dart /usr/local/bin/dart
 
