@@ -15,6 +15,7 @@ import 'features/assistant/services/speech_to_text_service.dart';
 import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
+import 'features/reminders/services/reminder_test_deep_link_service.dart';
 import 'features/reminders/widgets/reminder_sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 
@@ -28,13 +29,23 @@ class App extends ConsumerStatefulWidget {
 }
 
 class _AppState extends ConsumerState<App> {
+  ReminderTestDeepLinkService? _reminderTestDeepLinkService;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pluginSetupDeepLinkNotifierProvider);
       unawaited(locator<PluginSetupDeepLinkService>().startListening());
+      _reminderTestDeepLinkService = ReminderTestDeepLinkService();
+      unawaited(_reminderTestDeepLinkService!.startListening());
     });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_reminderTestDeepLinkService?.dispose());
+    super.dispose();
   }
 
   @override

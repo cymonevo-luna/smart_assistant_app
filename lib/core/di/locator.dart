@@ -2,9 +2,11 @@ import 'package:get_it/get_it.dart';
 
 import '../../features/assistant/data/assistant_repository.dart';
 import '../../features/assistant/data/assistant_settings_repository.dart';
+import '../../features/location/location_service.dart';
 import '../../features/plugins/data/plugin_repository.dart';
 import '../../features/plugins/services/plugin_auth_url_launcher.dart';
 import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
+import '../../features/reminders/data/location_reminder_repository.dart';
 import '../../features/reminders/data/reminder_repository.dart';
 import '../../features/reminders/services/reminder_notification_service.dart';
 import '../config/app_config.dart';
@@ -52,6 +54,10 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<PluginSetupDeepLinkService>(
     PluginSetupDeepLinkService(),
+  );
+  locator.registerSingleton<LocationService>(LocationService());
+  locator.registerSingleton<LocationReminderRepository>(
+    LocationReminderRepository(prefs),
   );
   locator.registerSingleton<ReminderRepository>(
     ReminderRepository(apiClient),

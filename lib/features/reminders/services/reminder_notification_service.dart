@@ -162,4 +162,33 @@ class ReminderNotificationService {
 
   /// Visible for tests to reset session-scoped delivery tracking.
   void clearShownThisSession() => _shownThisSession.clear();
+
+  /// Schedules a one-off local notification for QA/device verification.
+  ///
+  /// Does not call the API. Used by [ReminderTestDeepLinkService] in debug
+  /// builds so host scripts can verify notification delivery without staging
+  /// credentials.
+  Future<void> scheduleTestNotification({
+    required String message,
+    Duration delay = const Duration(seconds: 5),
+  }) async {
+    if (!_isMobile) return;
+
+    await initialize();
+    if (!await _permissionClient.ensureGranted()) return;
+
+    final scheduledAt = DateTime.now().add(delay);
+    if (!scheduledAt.isAfter(DateTime.now())) {
+      return;
+    }
+
+    await _notifications.zonedSchedule(
+      id: reminderNotificationId('debug-reminder-test'),
+      title: _notificationTitle,
+      body: message,
+      scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
+      notificationDetails: _notificationDetails(),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
 }

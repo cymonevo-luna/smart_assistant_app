@@ -152,4 +152,21 @@ void main() {
     expect(notifications.showCalls.single['body'], 'Server reminder');
     expect(repository.deliveredIds, ['rem-due-1']);
   });
+
+  test('scheduleTestNotification schedules a future local notification',
+      () async {
+    await service.scheduleTestNotification(
+      message: 'E2E reminder notification',
+      delay: const Duration(seconds: 10),
+    );
+
+    expect(notifications.zonedScheduleCalls, hasLength(1));
+    final call = notifications.zonedScheduleCalls.single;
+    expect(call['title'], 'Reminder');
+    expect(call['body'], 'E2E reminder notification');
+    expect(
+      call['androidScheduleMode'],
+      AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  });
 }
