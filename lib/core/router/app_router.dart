@@ -5,9 +5,8 @@ import '../../features/assistant/pages/assistant_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
-import '../../features/plugins/pages/my_plugins_page.dart';
+import '../../features/plugins/pages/manage_plugins_page.dart';
 import '../../features/plugins/pages/plugin_setup_page.dart';
-import '../../features/plugins/pages/plugin_store_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
@@ -21,8 +20,8 @@ enum AppRoute {
   assistant('/assistant'),
   profile('/profile'),
   settings('/settings'),
+  managePlugins('/plugins'),
   pluginStore('/plugins/store'),
-  myPlugins('/plugins'),
   pluginSetup('/plugins/:id/setup');
 
   const AppRoute(this.path);
@@ -93,13 +92,20 @@ final GoRouter appRouter = GoRouter(
       path: AppRoute.pluginStore.path,
       name: AppRoute.pluginStore.name,
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const PluginStorePage(),
+      redirect: (context, state) =>
+          '${AppRoute.managePlugins.path}?tab=available',
     ),
     GoRoute(
-      path: AppRoute.myPlugins.path,
-      name: AppRoute.myPlugins.name,
+      path: AppRoute.managePlugins.path,
+      name: AppRoute.managePlugins.name,
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const MyPluginsPage(),
+      builder: (context, state) {
+        final tab = state.uri.queryParameters['tab'];
+        final initialTab = tab == 'available'
+            ? ManagePluginsTab.available
+            : ManagePluginsTab.installed;
+        return ManagePluginsPage(initialTab: initialTab);
+      },
     ),
     GoRoute(
       path: AppRoute.pluginSetup.path,

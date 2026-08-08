@@ -29,7 +29,7 @@ class PluginRepository {
   Future<InstalledPlugin> install(String slug) {
     return _api.post<InstalledPlugin>(
       installedPath,
-      body: {'slug': slug},
+      body: {'plugin_slug': slug},
       decoder: (raw) => InstalledPlugin.fromJson(_unwrap(raw)),
     );
   }

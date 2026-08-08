@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,11 +15,23 @@ import 'package:smart_assistant_app/features/assistant/data/assistant_settings_r
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
-import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
 import 'package:smart_assistant_app/features/settings/settings_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import 'helpers/auth_harness.dart';
+import 'helpers/plugin_test_data.dart';
+
+Widget _routerApp() {
+  return MaterialApp.router(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    routerConfig: appRouter,
+  );
+}
 
 Widget _materialApp(Widget home) {
   return MaterialApp(
@@ -34,34 +45,9 @@ Widget _materialApp(Widget home) {
   );
 }
 
-Widget _routerApp(GoRouter router) {
-  return MaterialApp.router(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    routerConfig: router,
-  );
-}
-
-GoRouter _pluginsNavigationRouter() {
-  return GoRouter(
-    initialLocation: AppRoute.settings.path,
-    routes: [
-      GoRoute(
-        path: AppRoute.settings.path,
-        name: AppRoute.settings.name,
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: AppRoute.myPlugins.path,
-        name: AppRoute.myPlugins.name,
-        builder: (context, state) => const MyPluginsPage(),
-      ),
-    ],
-  );
+class _AuthenticatedAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 void main() {
@@ -187,21 +173,19 @@ void main() {
     expect(field.enabled, isFalse);
   });
 
-  testWidgets('settings navigates to manage plugins', (WidgetTester tester) async {
-    locator.registerSingleton<PluginRepository>(PluginRepository(locator<ApiClient>()));
+  testWidgets('settings navigates to Manage Plugins', (WidgetTester tester) async {
+    const defaults = AssistantSettings(
+      wakeWord: 'Jarvis',
+      activeListeningEnabled: false,
+    );
 
     adapter
       ..onGet(
         PluginRepository.catalogPath,
         (server) => server.reply(200, {
           'success': true,
-          'data': [
-            {
-              'slug': 'weather',
-              'name': 'Weather',
-              'description': 'Get weather forecasts',
-            },
-          ],
+          'data': [catalogGoogleCalendarMeet],
+          'meta': {'page': 1, 'per_page': 20, 'total': 1},
         }),
       )
       ..onGet(
@@ -212,20 +196,21 @@ void main() {
         }),
       );
 
-    const defaults = AssistantSettings(
-      wakeWord: 'Jarvis',
-      activeListeningEnabled: false,
+    locator.registerSingleton<PluginRepository>(
+      PluginRepository(locator<ApiClient>()),
     );
+
+    appRouter.go(AppRoute.settings.path);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          authProvider.overrideWith(() => _AuthenticatedAuthController()),
+          authProvider.overrideWith(_AuthenticatedAuthController.new),
           assistantSettingsProvider.overrideWith(
             () => _FakeAssistantSettingsNotifier(defaults),
           ),
         ],
-        child: _routerApp(_pluginsNavigationRouter()),
+        child: _routerApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -240,13 +225,8 @@ void main() {
     await tester.tap(pluginsTile);
     await tester.pumpAndSettle();
 
-    expect(find.text('My Plugins'), findsOneWidget);
+    expect(find.text('Manage Plugins'), findsOneWidget);
   });
-}
-
-class _AuthenticatedAuthController extends AuthController {
-  @override
-  AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
 class _FakeAssistantSettingsNotifier extends AssistantSettingsNotifier {

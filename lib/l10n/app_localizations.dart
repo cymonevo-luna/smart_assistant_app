@@ -518,6 +518,24 @@ abstract class AppLocalizations {
   /// **'Plugins'**
   String get plugins;
 
+  /// No description provided for @managePlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Plugins'**
+  String get managePlugins;
+
+  /// No description provided for @pluginsInstalledTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginsInstalledTab;
+
+  /// No description provided for @pluginsAvailableTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get pluginsAvailableTab;
+
   /// No description provided for @pluginStore.
   ///
   /// In en, this message translates to:

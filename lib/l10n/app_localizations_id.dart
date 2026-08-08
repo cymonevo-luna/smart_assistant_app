@@ -227,6 +227,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get plugins => 'Plugin';
 
   @override
+  String get managePlugins => 'Kelola Plugin';
+
+  @override
+  String get pluginsInstalledTab => 'Terpasang';
+
+  @override
+  String get pluginsAvailableTab => 'Tersedia';
+
+  @override
   String get pluginStore => 'Toko Plugin';
 
   @override

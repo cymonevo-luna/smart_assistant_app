@@ -227,6 +227,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plugins => 'Plugins';
 
   @override
+  String get managePlugins => 'Manage Plugins';
+
+  @override
+  String get pluginsInstalledTab => 'Installed';
+
+  @override
+  String get pluginsAvailableTab => 'Available';
+
+  @override
   String get pluginStore => 'Plugin Store';
 
   @override

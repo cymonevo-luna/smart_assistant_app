@@ -11,8 +11,7 @@ import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
-import 'package:smart_assistant_app/features/plugins/pages/my_plugins_page.dart';
-import 'package:smart_assistant_app/features/plugins/pages/plugin_store_page.dart';
+import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
 import '../../helpers/auth_harness.dart';
@@ -55,12 +54,14 @@ void main() {
     );
   }
 
-  void mockCatalog() {
+  void mockCatalog({List<Map<String, dynamic>>? plugins}) {
+    final data = plugins ?? catalogPlugins;
     adapter.onGet(
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
         'success': true,
-        'data': catalogPlugins,
+        'data': data,
+        'meta': {'page': 1, 'per_page': 20, 'total': data.length},
       }),
     );
   }
@@ -76,21 +77,19 @@ void main() {
   }
 
   testWidgets('catalog page lists plugins', (WidgetTester tester) async {
-    adapter.onGet(
-      PluginRepository.catalogPath,
-      (server) => server.reply(200, {
-        'success': true,
-        'data': [catalogGoogleCalendarMeet],
-      }),
-    );
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
     mockInstalledEmpty();
 
     await tester.pumpWidget(
-      scope(_materialApp(const PluginStorePage())),
+      scope(
+        _materialApp(
+          const ManagePluginsPage(initialTab: ManagePluginsTab.available),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Google Meet Scheduler'), findsOneWidget);
+    expect(find.text('Google Calendar Meet'), findsOneWidget);
     expect(find.text('Install'), findsOneWidget);
   });
 
@@ -119,11 +118,15 @@ void main() {
         'success': true,
         'data': installedWeather,
       }),
-      data: {'slug': 'weather'},
+      data: {'plugin_slug': 'weather'},
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const PluginStorePage())),
+      scope(
+        _materialApp(
+          const ManagePluginsPage(initialTab: ManagePluginsTab.available),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -134,10 +137,10 @@ void main() {
       (h) => h.request.method?.name == 'POST',
     );
     expect(postMatchers, isNotEmpty);
-    expect(postMatchers.last.request.data, {'slug': 'weather'});
+    expect(postMatchers.last.request.data, {'plugin_slug': 'weather'});
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -146,6 +149,7 @@ void main() {
   });
 
   testWidgets('uninstall with confirmation', (WidgetTester tester) async {
+    mockCatalog();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
@@ -159,7 +163,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -184,6 +188,7 @@ void main() {
   });
 
   testWidgets('toggle enable calls PATCH', (WidgetTester tester) async {
+    mockCatalog();
     adapter.onGet(
       PluginRepository.installedPath,
       (server) => server.reply(200, {
@@ -204,7 +209,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const MyPluginsPage())),
+      scope(_materialApp(const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
