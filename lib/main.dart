@@ -8,9 +8,11 @@ import 'core/config/app_config.dart';
 import 'core/di/locator.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/theme_provider.dart';
+import 'features/assistant/services/assistant_widget_init.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initAssistantWidget();
 
   FlutterForegroundTask.initCommunicationPort();
 
