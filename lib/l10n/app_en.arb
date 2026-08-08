@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "App Template",
+  "appTitle": "Smart Assistant App",
   "@appTitle": {
     "description": "The application title"
   },
