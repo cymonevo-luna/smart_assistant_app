@@ -9,7 +9,10 @@ import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
 import '../../features/reminders/data/location_reminder_repository.dart';
 import '../../features/reminders/data/reminder_api_repository.dart';
 import '../../features/reminders/data/time_reminder_api_repository.dart';
-import '../../features/reminders/location_monitor_service.dart';
+import '../../features/places/data/places_api_repository.dart';
+import '../../features/reminders/services/location_monitor_foreground_client_factory_stub.dart'
+    if (dart.library.io) '../../features/reminders/services/location_monitor_foreground_client_factory.dart';
+import '../../features/reminders/services/location_monitor_service.dart';
 import '../../features/reminders/reminder_registration_service.dart';
 import '../../features/reminders/services/location_reminder_notification_service.dart';
 import '../../features/reminders/services/reminder_notification_service.dart';
@@ -66,8 +69,21 @@ Future<void> setupLocator() async {
   locator.registerSingleton<ReminderApiRepository>(
     ReminderApiRepository(apiClient),
   );
+  locator.registerSingleton<PlacesApiRepository>(
+    PlacesApiRepository(apiClient),
+  );
+  locator.registerSingleton<LocationReminderNotificationService>(
+    LocationReminderNotificationService(),
+  );
   locator.registerSingleton<LocationMonitorService>(
-    StubLocationMonitorService(),
+    LocationProximityMonitorService(
+      reminderRepository: locator<LocationReminderRepository>(),
+      reminderApiRepository: locator<ReminderApiRepository>(),
+      placesApiRepository: locator<PlacesApiRepository>(),
+      locationService: locator<LocationService>(),
+      notificationService: locator<LocationReminderNotificationService>(),
+      foregroundClient: createLocationMonitorForegroundClient(),
+    ),
   );
   locator.registerSingleton<ReminderRegistrationService>(
     ReminderRegistrationService(
@@ -79,9 +95,6 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<TimeReminderApiRepository>(
     TimeReminderApiRepository(apiClient),
-  );
-  locator.registerSingleton<LocationReminderNotificationService>(
-    LocationReminderNotificationService(),
   );
   locator.registerSingleton<ReminderNotificationService>(
     ReminderNotificationService(
