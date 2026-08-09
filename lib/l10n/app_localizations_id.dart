@@ -9,10 +9,10 @@ class AppLocalizationsId extends AppLocalizations {
   AppLocalizationsId([String locale = 'id']) : super(locale);
 
   @override
-  String get appTitle => 'Smart Assistant App';
+  String get appTitle => 'Jarvis';
 
   @override
-  String get appTagline => 'Taglinemu di sini';
+  String get appTagline => 'Asisten AI Anda, siap diperintah.';
 
   @override
   String get home => 'Beranda';

@@ -26,7 +26,7 @@ source "$SCRIPT_DIR/lib/flutter-test-env.sh"
 
 WIDGET_INFO_SRC="$REPO_DIR/android/app/src/main/res/xml/assistant_widget_info.xml"
 PACKAGE="com.cymonevo.smart_assistant"
-APP_LABEL="Smart Assistant App"
+APP_LABEL="Jarvis"
 
 log() { printf '>> %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }

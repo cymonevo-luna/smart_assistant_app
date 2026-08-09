@@ -1,10 +1,10 @@
 {
   "@@locale": "en",
-  "appTitle": "Smart Assistant App",
+  "appTitle": "Jarvis",
   "@appTitle": {
     "description": "The application title"
   },
-  "appTagline": "Tagline goes here",
+  "appTagline": "Your AI assistant, at your command.",
   "home": "Home",
   "tasks": "Tasks",
   "calendar": "Calendar",

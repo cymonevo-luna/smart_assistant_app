@@ -1,7 +1,7 @@
 {
   "@@locale": "id",
-  "appTitle": "Smart Assistant App",
-  "appTagline": "Taglinemu di sini",
+  "appTitle": "Jarvis",
+  "appTagline": "Asisten AI Anda, siap diperintah.",
   "home": "Beranda",
   "tasks": "Tugas",
   "calendar": "Kalender",

@@ -98,7 +98,7 @@ MANIFEST
         ;;
       badging)
         echo "package: name='com.cymonevo.smart_assistant'"
-        echo "application-label:'Smart Assistant App'"
+        echo "application-label:'Jarvis'"
         exit 0
         ;;
     esac

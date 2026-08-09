@@ -11,7 +11,7 @@
 #   to confirm MainActivity is top-resumed and the intent data URI matches.
 #
 # Widget picker fallback (manual):
-#   Long-press home → Widgets → find "Smart Assistant App" if dumpsys/cmd
+#   Long-press home → Widgets → find "Jarvis" if dumpsys/cmd
 #   appwidget checks are inconclusive on a given launcher/API level.
 #
 # Usage (from repo root):
@@ -37,7 +37,7 @@ WIDGET_LISTEN_URI="smartassistant://assistant/widget-listen"
 PLUGIN_SETUP_URI="smartassistant://plugin-setup/complete?status=success"
 MAIN_ACTIVITY="$PACKAGE/.MainActivity"
 WIDGET_PROVIDER="$PACKAGE/.AssistantWidgetProvider"
-WIDGET_LABEL="Smart Assistant App"
+WIDGET_LABEL="Jarvis"
 
 log() { printf '>> %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
