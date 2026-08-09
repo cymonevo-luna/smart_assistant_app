@@ -150,7 +150,7 @@ class _ManagePluginsPageState extends ConsumerState<ManagePluginsPage>
 
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(),
+        automaticallyImplyLeading: false,
         title: AppText.heading(l10n.managePlugins),
         bottom: TabBar(
           controller: _tabController,
