@@ -29,6 +29,10 @@ abstract final class AppTheme {
       brightness: brightness,
     ).copyWith(
       surface: isLight ? AppPalette.lightSurface : AppPalette.darkSurface,
+      secondary: AppPalette.jarvisGold,
+      onSecondary: isLight
+          ? AppPalette.lightTextPrimary
+          : AppPalette.darkTextPrimary,
     );
 
     final scaffoldBg =

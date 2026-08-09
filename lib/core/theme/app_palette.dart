@@ -51,4 +51,7 @@ abstract final class AppPalette {
   static const Color darkTextPrimary = Color(0xFFF3F4F6);
   static const Color darkTextSecondary = Color(0xFF9CA3AF);
   static const Color darkBorder = Color(0xFF2A2E37);
+
+  /// Jarvis HUD gold accent — used as [ColorScheme.secondary] for assistant UI.
+  static const Color jarvisGold = Color(0xFFD4AF37);
 }

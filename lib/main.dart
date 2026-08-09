@@ -32,7 +32,7 @@ Future<void> main() async {
   // Each app sets its brand color here; users can still change it at runtime.
   final app = ProviderScope(
     overrides: [
-      defaultAccentProvider.overrideWithValue(AppAccent.blue),
+      defaultAccentProvider.overrideWithValue(AppAccent.red),
     ],
     child: const App(),
   );
