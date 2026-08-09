@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -15,22 +14,9 @@ import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart
 import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
-import 'package:smart_assistant_app/l10n/app_localizations.dart';
-
 import '../../helpers/auth_harness.dart';
+import '../../helpers/material_test_harness.dart';
 import '../../helpers/plugin_test_data.dart';
-
-Widget _routerApp() {
-  return MaterialApp.router(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    routerConfig: appRouter,
-  );
-}
 
 void main() {
   late DioAdapter adapter;
@@ -152,7 +138,7 @@ void main() {
       pathParameters: {'id': installId},
     );
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -208,7 +194,7 @@ void main() {
       pathParameters: {'id': installId},
     );
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -242,7 +228,7 @@ void main() {
       pathParameters: {'id': installId},
     );
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     expect(find.text('Setup complete! This plugin is ready to use.'), findsOneWidget);
@@ -286,7 +272,7 @@ void main() {
       pathParameters: {'id': installId},
     );
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.enterText(
