@@ -12,6 +12,13 @@ ENV LANG=C.UTF-8 \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
     PATH=/opt/flutter/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${PATH}
 
+# Docker's default RUN shell is /bin/sh (dash on Ubuntu), which does not
+# support "set -o pipefail" used below to make the `yes | sdkmanager
+# --licenses` step fail loudly on real errors while ignoring the SIGPIPE
+# `yes` gets once sdkmanager stops reading. Switch to bash for all RUN
+# instructions.
+SHELL ["/bin/bash", "-c"]
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
