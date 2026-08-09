@@ -274,6 +274,35 @@ void main() {
     locator<WidgetLaunchService>().handleUri(widgetListenUri);
   }
 
+  Future<void> waitForListeningAfterFollowUp(
+    WidgetTester tester,
+    ProviderContainer container,
+  ) async {
+    for (var i = 0; i < 50; i++) {
+      if (container.read(assistantControllerProvider).interactionState ==
+              AssistantInteractionState.listening &&
+          recognizer.listening) {
+        return;
+      }
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    fail('Timed out waiting for follow-up listening');
+  }
+
+  Future<void> waitForIdle(
+    WidgetTester tester,
+    ProviderContainer container,
+  ) async {
+    for (var i = 0; i < 50; i++) {
+      if (container.read(assistantControllerProvider).interactionState ==
+          AssistantInteractionState.idle) {
+        return;
+      }
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    fail('Timed out waiting for idle');
+  }
+
   testWidgets('widget flow starts listening and sends message', (tester) async {
     adapter.onPost(
       '/api/v1/assistant/sessions/sess-1/messages',
@@ -351,6 +380,96 @@ void main() {
     expect(recognizer.listening, isFalse);
     expect(find.byKey(const ValueKey('assistant_listening_overlay')),
         findsNothing);
+  });
+
+  testWidgets('widget launch keeps overlay open through follow-up turn',
+      (tester) async {
+    adapter
+      ..onPost(
+        '/api/v1/assistant/sessions/sess-1/messages',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'reply': {
+              'type': 'follow_up',
+              'text': "What is Janet's email address?",
+            },
+            'session_status': 'active',
+          },
+        }),
+        data: {
+          'text': 'schedule meeting',
+          'source': 'button',
+        },
+      )
+      ..onPost(
+        '/api/v1/assistant/sessions/sess-1/messages',
+        (server) => server.reply(200, {
+          'success': true,
+          'data': {
+            'reply': {
+              'type': 'action_result',
+              'text': 'Meeting scheduled.',
+            },
+            'session_status': 'active',
+          },
+        }),
+        data: {
+          'text': 'janet@example.com',
+          'source': 'button',
+        },
+      );
+
+    final container = await pumpHarness(tester);
+
+    fireWidgetLaunch();
+    await tester.pump();
+
+    expect(
+      container.read(assistantListeningOverlayControllerProvider),
+      isTrue,
+    );
+    expect(find.byKey(const ValueKey('assistant_listening_overlay')),
+        findsOneWidget);
+    expect(recognizer.listening, isTrue);
+
+    recognizer.emitFinal('schedule meeting');
+    await tester.pump();
+    await waitForListeningAfterFollowUp(tester, container);
+
+    expect(
+      container.read(assistantListeningOverlayControllerProvider),
+      isTrue,
+    );
+    expect(find.byKey(const ValueKey('assistant_listening_overlay')),
+        findsOneWidget);
+    expect(recognizer.listening, isTrue);
+
+    recognizer.emitFinal('janet@example.com');
+    await tester.pump();
+    await waitForIdle(tester, container);
+
+    expect(
+      container.read(assistantControllerProvider).interactionState,
+      AssistantInteractionState.idle,
+    );
+    expect(
+      container.read(assistantListeningOverlayControllerProvider),
+      isFalse,
+    );
+    expect(find.byKey(const ValueKey('assistant_listening_overlay')),
+        findsNothing);
+
+    final postMatchers = adapter.history.where(
+      (h) =>
+          h.request.method?.name == 'POST' &&
+          h.request.route == '/api/v1/assistant/sessions/sess-1/messages',
+    );
+    expect(postMatchers, hasLength(2));
+    expect(
+      postMatchers.every((h) => h.request.data?['source'] == 'button'),
+      isTrue,
+    );
   });
 
   testWidgets('cancel aborts without API call', (tester) async {
