@@ -33,7 +33,8 @@ class WidgetLaunchController extends Notifier<void> {
     ref.listen<AssistantUiState>(assistantControllerProvider, (previous, next) {
       if (!ref.read(assistantListeningOverlayControllerProvider)) return;
       if (next.interactionState == AssistantInteractionState.idle &&
-          next.errorMessage == null) {
+          next.errorMessage == null &&
+          !next.expectsFollowUpInput) {
         ref.read(assistantListeningOverlayControllerProvider.notifier).hide();
       }
     });
