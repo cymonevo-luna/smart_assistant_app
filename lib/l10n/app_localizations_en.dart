@@ -386,6 +386,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assistantManagePlugins => 'Manage plugins';
 
   @override
+  String get assistantConfirmYes => 'Yes';
+
+  @override
+  String get assistantConfirmNo => 'No';
+
+  @override
   String get openInBrowser => 'Open in browser';
 
   @override

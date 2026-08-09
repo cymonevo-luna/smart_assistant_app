@@ -6,6 +6,7 @@ import '../../core/di/locator.dart';
 import '../../core/network/api_exception.dart';
 import '../../features/reminders/reminder_registration_service.dart';
 import '../../features/reminders/services/reminder_notification_service.dart';
+import 'assistant_message_support.dart';
 import 'data/assistant_repository.dart';
 import 'models/assistant_reply.dart';
 import 'models/assistant_session.dart';
@@ -217,11 +218,23 @@ class AssistantController extends Notifier<AssistantUiState> {
 
       final response = result.response;
       final reply = response.reply;
+      final displayText = assistantReplyDisplayText(
+        text: reply.text,
+        action: reply.action,
+      );
+
+      if (reply.type == AssistantReplyType.actionResult) {
+        if (state.interactionState == AssistantInteractionState.listening) {
+          await _stt.stopListening();
+        }
+        _activeCaptureSource = null;
+      }
+
       state = state.copyWith(
         messages: [
           ...state.messages,
           ChatMessage(
-            text: reply.text,
+            text: displayText,
             isUser: false,
             replyType: reply.type,
             action: reply.action,
@@ -246,7 +259,7 @@ class AssistantController extends Notifier<AssistantUiState> {
         await _startNewSession();
       }
 
-      await _tts.speak(reply.text);
+      await _tts.speak(displayText);
       if (!_tts.isSupported) {
         _onSpeechComplete();
       }
@@ -336,6 +349,18 @@ class AssistantController extends Notifier<AssistantUiState> {
 
     await _sendUserMessage(
       text,
+      source: _activeCaptureSource ?? 'button',
+    );
+  }
+
+  /// Sends a yes/no answer to the latest confirmation prompt.
+  Future<void> sendConfirmationResponse({required bool confirmed}) async {
+    if (!state.expectsFollowUpInput) return;
+    if (state.interactionState == AssistantInteractionState.listening) {
+      await _stt.stopListening();
+    }
+    await _sendUserMessage(
+      confirmed ? 'yes' : 'no',
       source: _activeCaptureSource ?? 'button',
     );
   }

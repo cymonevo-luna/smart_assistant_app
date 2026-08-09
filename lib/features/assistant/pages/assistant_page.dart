@@ -7,6 +7,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../assistant_controller.dart';
 import '../active_listening_controller.dart';
+import '../models/assistant_reply.dart';
 import '../models/chat_message.dart';
 import '../widgets/assistant_message_bubble.dart';
 
@@ -128,13 +129,28 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                   final latestAssistantIndex = _latestAssistantMessageIndex(
                     state.messages,
                   );
+                  final isLatestAssistant = index == latestAssistantIndex;
                   return AssistantMessageBubble(
                     key: ValueKey('chat_message_$index'),
                     text: message.text,
                     isUser: message.isUser,
                     replyType: message.replyType,
                     action: message.action,
-                    showActionCta: index == latestAssistantIndex,
+                    showActionCta: isLatestAssistant,
+                    onConfirm: isLatestAssistant &&
+                            message.replyType ==
+                                AssistantReplyType.confirmation
+                        ? () => ref
+                            .read(assistantControllerProvider.notifier)
+                            .sendConfirmationResponse(confirmed: true)
+                        : null,
+                    onDeny: isLatestAssistant &&
+                            message.replyType ==
+                                AssistantReplyType.confirmation
+                        ? () => ref
+                            .read(assistantControllerProvider.notifier)
+                            .sendConfirmationResponse(confirmed: false)
+                        : null,
                   );
                 }
                 return _ListeningBubble(text: state.partialTranscript!);
