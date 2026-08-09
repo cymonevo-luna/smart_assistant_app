@@ -13,6 +13,8 @@ _PluginCatalogItem _$PluginCatalogItemFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       version: json['version'] as String?,
       iconUrl: json['icon_url'] as String?,
+      requiredSetup: json['required_setup'] as bool? ?? false,
+      setupType: _setupTypeFromJson(json['setup_type']),
     );
 
 Map<String, dynamic> _$PluginCatalogItemToJson(_PluginCatalogItem instance) =>
@@ -22,4 +24,6 @@ Map<String, dynamic> _$PluginCatalogItemToJson(_PluginCatalogItem instance) =>
       'description': instance.description,
       'version': instance.version,
       'icon_url': instance.iconUrl,
+      'required_setup': instance.requiredSetup,
+      'setup_type': _setupTypeToJson(instance.setupType),
     };

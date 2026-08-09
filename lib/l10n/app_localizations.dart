@@ -680,11 +680,53 @@ abstract class AppLocalizations {
   /// **'Plugin Setup'**
   String get pluginSetup;
 
+  /// No description provided for @pluginOAuthSetupInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your Google account so this plugin can access your calendar and related services.'**
+  String get pluginOAuthSetupInstructions;
+
   /// No description provided for @pluginSetupInstructions.
   ///
   /// In en, this message translates to:
   /// **'Connect your Google account so this plugin can access your calendar and related services.'**
   String get pluginSetupInstructions;
+
+  /// No description provided for @pluginFormSetupInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your Composio API key to connect external apps and automate workflows.'**
+  String get pluginFormSetupInstructions;
+
+  /// No description provided for @pluginSetupApiKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'API key required'**
+  String get pluginSetupApiKeyRequired;
+
+  /// No description provided for @pluginSetupOAuthRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Account connection required'**
+  String get pluginSetupOAuthRequired;
+
+  /// No description provided for @composioApiKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Composio API key'**
+  String get composioApiKeyLabel;
+
+  /// No description provided for @composioApiKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'API key is required'**
+  String get composioApiKeyRequired;
+
+  /// No description provided for @saveApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Save API key'**
+  String get saveApiKey;
 
   /// No description provided for @connectGoogleAccount.
   ///

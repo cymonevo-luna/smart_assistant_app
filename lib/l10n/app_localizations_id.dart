@@ -318,8 +318,31 @@ class AppLocalizationsId extends AppLocalizations {
   String get pluginSetup => 'Setup Plugin';
 
   @override
+  String get pluginOAuthSetupInstructions =>
+      'Hubungkan akun Google agar plugin ini dapat mengakses kalender dan layanan terkait.';
+
+  @override
   String get pluginSetupInstructions =>
       'Hubungkan akun Google agar plugin ini dapat mengakses kalender dan layanan terkait.';
+
+  @override
+  String get pluginFormSetupInstructions =>
+      'Masukkan kunci API Composio untuk menghubungkan aplikasi eksternal dan otomatisasi alur kerja.';
+
+  @override
+  String get pluginSetupApiKeyRequired => 'Kunci API diperlukan';
+
+  @override
+  String get pluginSetupOAuthRequired => 'Koneksi akun diperlukan';
+
+  @override
+  String get composioApiKeyLabel => 'Kunci API Composio';
+
+  @override
+  String get composioApiKeyRequired => 'Kunci API wajib diisi';
+
+  @override
+  String get saveApiKey => 'Simpan kunci API';
 
   @override
   String get connectGoogleAccount => 'Hubungkan Akun Google';

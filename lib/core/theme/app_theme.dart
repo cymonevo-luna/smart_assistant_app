@@ -18,22 +18,44 @@ abstract final class AppTheme {
   static ThemeData dark(AppAccent accent) =>
       _build(accent, Brightness.dark, AppTokens.dark);
 
+  /// Accent-driven [ColorScheme] without building component themes (fonts, etc.).
+  static ColorScheme colorScheme(AppAccent accent, Brightness brightness) =>
+      _colorScheme(accent, brightness);
+
+  static ColorScheme _colorScheme(AppAccent accent, Brightness brightness) {
+    final isLight = brightness == Brightness.light;
+    final onGold =
+        isLight ? const Color(0xFF1A1A1A) : AppPalette.darkScaffold;
+
+    final base = ColorScheme.fromSeed(
+      seedColor: accent.seed,
+      brightness: brightness,
+    );
+
+    if (accent == AppAccent.jarvis) {
+      return base.copyWith(
+        primary: accent.seed,
+        onPrimary: Colors.white,
+        secondary: AppPalette.jarvisGold,
+        onSecondary: onGold,
+        tertiary: AppPalette.jarvisGold,
+        onTertiary: onGold,
+        surface: isLight ? AppPalette.lightSurface : AppPalette.darkSurface,
+      );
+    }
+
+    return base.copyWith(
+      surface: isLight ? AppPalette.lightSurface : AppPalette.darkSurface,
+    );
+  }
+
   static ThemeData _build(
     AppAccent accent,
     Brightness brightness,
     AppTokens tokens,
   ) {
     final isLight = brightness == Brightness.light;
-    final scheme = ColorScheme.fromSeed(
-      seedColor: accent.seed,
-      brightness: brightness,
-    ).copyWith(
-      surface: isLight ? AppPalette.lightSurface : AppPalette.darkSurface,
-      secondary: AppPalette.jarvisGold,
-      onSecondary: isLight
-          ? AppPalette.lightTextPrimary
-          : AppPalette.darkTextPrimary,
-    );
+    final scheme = _colorScheme(accent, brightness);
 
     final scaffoldBg =
         isLight ? AppPalette.lightScaffold : AppPalette.darkScaffold;
@@ -126,7 +148,7 @@ abstract final class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: scheme.surface,
-        selectedItemColor: scheme.primary,
+        selectedItemColor: scheme.secondary,
         unselectedItemColor: tokens.textSecondary,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
@@ -134,13 +156,25 @@ abstract final class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
-        indicatorColor: scheme.primary.withValues(alpha: 0.12),
+        indicatorColor: scheme.secondary.withValues(alpha: 0.12),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final color = states.contains(WidgetState.selected)
+              ? scheme.secondary
+              : tokens.textSecondary;
+          return textTheme.labelSmall?.copyWith(color: color);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final color = states.contains(WidgetState.selected)
+              ? scheme.secondary
+              : tokens.textSecondary;
+          return IconThemeData(color: color);
+        }),
         elevation: 0,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: scheme.primary.withValues(alpha: 0.1),
-        labelStyle: textTheme.labelLarge?.copyWith(color: scheme.primary),
+        backgroundColor: scheme.secondary.withValues(alpha: 0.15),
+        labelStyle: textTheme.labelLarge?.copyWith(color: scheme.secondary),
         side: BorderSide.none,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.brPill),
       ),
