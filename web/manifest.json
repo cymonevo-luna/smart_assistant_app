@@ -1,11 +1,11 @@
 {
-    "name": "Smart Assistant App",
-    "short_name": "Smart Assistant App",
+    "name": "Jarvis",
+    "short_name": "Jarvis",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#C8102E",
     "theme_color": "#C8102E",
-    "description": "A new Flutter project.",
+    "description": "Your AI assistant, at your command.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

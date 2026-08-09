@@ -118,7 +118,7 @@ case "${1:-}" in
 Receiver Resolver Table:
   com.cymonevo.smart_assistant/.AssistantWidgetProvider
     meta-data: android.appwidget.provider=@xml/assistant_widget_info
-    label=Smart Assistant App
+    label=Jarvis
 PKG
         exit 0
         ;;

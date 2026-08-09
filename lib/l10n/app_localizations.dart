@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'Smart Assistant App'**
+  /// **'Jarvis'**
   String get appTitle;
 
   /// No description provided for @appTagline.
   ///
   /// In en, this message translates to:
-  /// **'Tagline goes here'**
+  /// **'Your AI assistant, at your command.'**
   String get appTagline;
 
   /// No description provided for @home.

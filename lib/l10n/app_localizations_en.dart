@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Smart Assistant App';
+  String get appTitle => 'Jarvis';
 
   @override
-  String get appTagline => 'Tagline goes here';
+  String get appTagline => 'Your AI assistant, at your command.';
 
   @override
   String get home => 'Home';
