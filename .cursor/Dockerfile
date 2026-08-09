@@ -60,6 +60,7 @@ RUN groupadd -g 1000 ubuntu || true \
         "build-tools;34.0.0" \
         "platforms;android-34" \
         "platforms;android-36" \
+        "system-images;android-34;google_apis;x86_64" \
     && test -x "${ANDROID_HOME}/platform-tools/adb" \
     && test -x "${ANDROID_HOME}/emulator/emulator" \
     && chown -R ubuntu:ubuntu /opt/flutter "${ANDROID_HOME}"
@@ -70,11 +71,20 @@ export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export PATH="/opt/flutter/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 EOF
 
-RUN chmod 644 /etc/profile.d/luna-flutter-android.sh \
+RUN groupadd -r kvm 2>/dev/null || true \
+    && usermod -aG kvm ubuntu \
+    && chmod 644 /etc/profile.d/luna-flutter-android.sh \
     && ln -sf /opt/flutter/bin/flutter /usr/local/bin/flutter \
     && ln -sf /opt/flutter/bin/dart /usr/local/bin/dart
 
 USER ubuntu
 WORKDIR /home/ubuntu
+
+RUN echo no | avdmanager create avd \
+        -n "Luna_Test_Lite" \
+        -d "Nexus 5X" \
+        -k "system-images;android-34;google_apis;x86_64" \
+    && test -d "$HOME/.android/avd/Luna_Test_Lite.avd" \
+    && emulator -list-avds | grep -Fxq "Luna_Test_Lite"
 
 RUN flutter doctor -v

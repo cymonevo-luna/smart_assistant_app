@@ -86,8 +86,10 @@ if ! "$(
 fi
 
 gpu_flag="-gpu auto"
+accel_flag=""
 if ! kvm_usable && ! kvm_group_member; then
   gpu_flag="-gpu swiftshader_indirect"
+  accel_flag="-accel off"
   _flutter_test_env_log "KVM unavailable; starting emulator with software rendering (slow)."
 fi
 
@@ -103,6 +105,7 @@ run_with_kvm "$(
   -no-boot-anim \
   -no-snapshot-save \
   $gpu_flag \
+  $accel_flag \
   >/dev/null 2>&1 &
 
 emu_pid=$!
