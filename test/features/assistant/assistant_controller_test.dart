@@ -479,4 +479,49 @@ void main() {
     );
     expect(posts, hasLength(3));
   });
+
+  test('terminal text reply does not auto-resume listening', () async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions/sess-1/messages',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'reply': {
+            'type': 'text',
+            'text': 'Here is your answer.',
+          },
+          'session_status': 'active',
+        },
+      }),
+      data: {
+        'text': 'what is the weather',
+        'source': 'wake_word',
+      },
+    );
+
+    final container = await createContainer();
+    final controller = container.read(assistantControllerProvider.notifier);
+
+    await controller.sendWakeWordCommand('what is the weather');
+    await waitForInteractionState(
+      container,
+      AssistantInteractionState.idle,
+    );
+
+    for (var i = 0; i < 50; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    final state = container.read(assistantControllerProvider);
+    expect(state.interactionState, AssistantInteractionState.idle);
+    expect(recognizer.listening, isFalse);
+    expect(state.expectsFollowUpInput, isFalse);
+
+    final posts = adapter.history.where(
+      (h) =>
+          h.request.method?.name == 'POST' &&
+          h.request.route == '/api/v1/assistant/sessions/sess-1/messages',
+    );
+    expect(posts, hasLength(1));
+  });
 }
