@@ -232,6 +232,7 @@ void main() {
     expect(find.byType(ManagePluginsPage), findsOneWidget);
     expect(find.text('Manage Plugins'), findsOneWidget);
     expect(appRouter.routeInformationProvider.value.uri.path, '/plugins');
+    expect(find.byType(NavigationDestination), findsNWidgets(3));
   });
 
   testWidgets('GoRouter OAuth failed URI does not show route error',
