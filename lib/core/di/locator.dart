@@ -5,6 +5,7 @@ import '../../features/assistant/data/assistant_settings_repository.dart';
 import '../../features/location/location_service.dart';
 import '../../features/plugins/data/plugin_repository.dart';
 import '../../features/plugins/services/plugin_auth_url_launcher.dart';
+import '../../features/assistant/services/widget_launch_service.dart';
 import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
 import '../../features/reminders/data/location_reminder_repository.dart';
 import '../../features/reminders/data/reminder_api_repository.dart';
@@ -61,6 +62,9 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<PluginSetupDeepLinkService>(
     PluginSetupDeepLinkService(),
+  );
+  locator.registerSingleton<WidgetLaunchService>(
+    WidgetLaunchService(),
   );
   locator.registerSingleton<LocationService>(LocationService());
   locator.registerSingleton<LocationReminderRepository>(

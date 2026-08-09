@@ -115,6 +115,16 @@ class AssistantController extends Notifier<AssistantUiState> {
       return;
     }
 
+    await startManualCommandCapture(source: 'button');
+  }
+
+  /// Starts microphone capture for a manual (button/widget) command.
+  ///
+  /// Unlike [onMicPressed], does not stop an active listening session — no-op
+  /// when the assistant is not [AssistantInteractionState.idle].
+  Future<void> startManualCommandCapture({String source = 'button'}) async {
+    if (state.interactionState != AssistantInteractionState.idle) return;
+
     state = state.copyWith(
       interactionState: AssistantInteractionState.listening,
       clearPartialTranscript: true,
@@ -126,7 +136,7 @@ class AssistantController extends Notifier<AssistantUiState> {
         state = state.copyWith(partialTranscript: transcript);
       },
       onFinal: (transcript) {
-        _handleFinalTranscript(transcript);
+        _handleManualCommandTranscript(transcript, source: source);
       },
     );
 
@@ -140,7 +150,10 @@ class AssistantController extends Notifier<AssistantUiState> {
     }
   }
 
-  Future<void> _handleFinalTranscript(String transcript) async {
+  Future<void> _handleManualCommandTranscript(
+    String transcript, {
+    required String source,
+  }) async {
     final text = transcript.trim();
     await _stt.stopListening();
 
@@ -152,7 +165,7 @@ class AssistantController extends Notifier<AssistantUiState> {
       return;
     }
 
-    await _sendUserMessage(text);
+    await _sendUserMessage(text, source: source);
   }
 
   Future<void> _sendUserMessage(

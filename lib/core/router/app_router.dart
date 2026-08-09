@@ -8,6 +8,8 @@ import '../../features/auth/register_page.dart';
 import '../../features/auth/splash_page.dart';
 import '../../features/plugins/pages/manage_plugins_page.dart';
 import '../../features/plugins/pages/plugin_setup_page.dart';
+import '../../features/assistant/services/widget_launch_service.dart';
+import '../../features/assistant/services/widget_launch_uri.dart';
 import '../../features/plugins/services/plugin_setup_deep_link_service.dart';
 import '../../features/plugins/services/plugin_setup_oauth_callback.dart';
 import '../../features/profile/profile_page.dart';
@@ -35,6 +37,9 @@ enum AppRoute {
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Root navigator for overlays and global navigation from services.
+GlobalKey<NavigatorState> get appRootNavigatorKey => _rootNavigatorKey;
+
 /// The app's router. Bottom-navigation tabs live inside a
 /// [StatefulShellRoute.indexedStack] so each tab is instantiated only once and
 /// kept alive; everything else (auth, settings) sits on the root navigator and
@@ -46,6 +51,10 @@ final GoRouter appRouter = GoRouter(
     if (isPluginSetupOAuthCallback(state.uri)) {
       locator<PluginSetupDeepLinkService>().handleUri(state.uri);
       return AppRoute.managePlugins.path;
+    }
+    if (isWidgetListenUri(state.uri)) {
+      locator<WidgetLaunchService>().handleUri(state.uri);
+      return null;
     }
     return null;
   },

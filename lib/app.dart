@@ -12,6 +12,8 @@ import 'core/theme/theme_provider.dart';
 import 'features/assistant/active_listening_controller.dart';
 import 'features/assistant/services/foreground_task_app_wrapper.dart';
 import 'features/assistant/services/speech_to_text_service.dart';
+import 'features/assistant/services/widget_launch_service.dart';
+import 'features/assistant/widget_launch_controller.dart';
 import 'features/assistant/widgets/assistant_listening_overlay_host.dart';
 import 'features/plugins/plugin_setup_deep_link_provider.dart';
 import 'features/plugins/services/plugin_setup_deep_link_service.dart';
@@ -37,7 +39,9 @@ class _AppState extends ConsumerState<App> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pluginSetupDeepLinkNotifierProvider);
+      ref.read(widgetLaunchControllerProvider);
       unawaited(locator<PluginSetupDeepLinkService>().startListening());
+      unawaited(locator<WidgetLaunchService>().startListening());
       _reminderTestDeepLinkService = ReminderTestDeepLinkService();
       unawaited(_reminderTestDeepLinkService!.startListening());
       unawaited(_syncPendingReminders());
@@ -62,37 +66,38 @@ class _AppState extends ConsumerState<App> {
   Widget build(BuildContext context) {
     ref.watch(speechToTextInitializationProvider);
     ref.watch(activeListeningControllerProvider);
+    ref.watch(widgetLaunchControllerProvider);
     final theme = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
     return wrapWithForegroundTask(
       child: ReminderSyncLifecycle(
-        child: MaterialApp.router(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(theme.accent),
-          darkTheme: AppTheme.dark(theme.accent),
-          themeMode: theme.mode,
-          locale: locale,
-          supportedLocales: kSupportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          routerConfig: appRouter,
-          builder: (context, child) {
-            locator<ReminderRegistrationService>().onPermissionExplanationNeeded =
-                (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            };
-            return AssistantListeningOverlayHost(
-              child: child ?? const SizedBox.shrink(),
-            );
-          },
+        child: AssistantListeningOverlayHost(
+          child: MaterialApp.router(
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(theme.accent),
+            darkTheme: AppTheme.dark(theme.accent),
+            themeMode: theme.mode,
+            locale: locale,
+            supportedLocales: kSupportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            routerConfig: appRouter,
+            builder: (context, child) {
+              locator<ReminderRegistrationService>()
+                  .onPermissionExplanationNeeded = (message) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              };
+              return child ?? const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
