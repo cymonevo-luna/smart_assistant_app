@@ -65,6 +65,17 @@ class PluginRepository {
     );
   }
 
+  Future<PluginSetupStatusResponse> submitFormSetup(
+    String pluginId,
+    Map<String, dynamic> body,
+  ) {
+    return _api.post<PluginSetupStatusResponse>(
+      setupPath(pluginId),
+      body: body,
+      decoder: (raw) => PluginSetupStatusResponse.fromJson(_unwrap(raw)),
+    );
+  }
+
   List<T> _parseList<T>(
     dynamic raw,
     T Function(Map<String, dynamic>) fromJson,

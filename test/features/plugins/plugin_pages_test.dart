@@ -142,7 +142,17 @@ void main() {
   });
 
   testWidgets('install plugin success', (WidgetTester tester) async {
-    mockCatalog();
+    mockCatalog(plugins: [
+      {
+        'id': 'catalog-weather',
+        'slug': 'weather',
+        'name': 'Weather',
+        'description': 'Get weather forecasts',
+        'version': '1.0.0',
+        'required_setup': true,
+        'setup_type': 'oauth_google',
+      },
+    ]);
     var installedFetchCount = 0;
     adapter.onGet(
       PluginRepository.installedPath,
@@ -164,7 +174,10 @@ void main() {
       PluginRepository.installedPath,
       (server) => server.reply(201, {
         'success': true,
-        'data': installedWeather,
+        'data': {
+          ...installedWeather,
+          'setup_status': 'completed',
+        },
       }),
       data: {'plugin_slug': 'weather'},
     );
@@ -194,6 +207,90 @@ void main() {
 
     expect(find.text('Weather'), findsOneWidget);
     expect(find.text('Get weather forecasts'), findsOneWidget);
+  });
+
+  testWidgets('Composio AI appears in plugin catalog', (WidgetTester tester) async {
+    mockCatalog(plugins: catalogPlugins);
+    mockInstalledEmpty();
+
+    await tester.pumpWidget(
+      scope(
+        _materialApp(
+          const ManagePluginsPage(initialTab: ManagePluginsTab.available),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Composio AI'), findsOneWidget);
+    expect(
+      find.text(
+        'Connect external apps and automate workflows with Composio integrations',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('API key required'), findsOneWidget);
+    expect(find.text('Google Calendar Meet'), findsOneWidget);
+    expect(find.text('Reminder'), findsOneWidget);
+  });
+
+  testWidgets('install composio-ai succeeds and opens form setup',
+      (WidgetTester tester) async {
+    const installId = 'install-composio-ai';
+    mockCatalog(plugins: [catalogComposioAi]);
+    mockInstalledEmpty();
+
+    final installedComposio = nestedInstalledComposioAi(id: installId);
+    adapter.onPost(
+      PluginRepository.installedPath,
+      (server) => server.reply(201, {
+        'success': true,
+        'data': installedComposio,
+      }),
+      data: {'plugin_slug': 'composio-ai'},
+    );
+    adapter.onGet(
+      '${PluginRepository.setupPath(installId)}/status',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {'setup_status': 'not_started'},
+      }),
+    );
+
+    appRouter.go('${AppRoute.managePlugins.path}?tab=available');
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Install'));
+    await tester.pumpAndSettle();
+
+    final postMatchers = adapter.history.where(
+      (h) => h.request.method?.name == 'POST',
+    );
+    expect(postMatchers.last.request.data, {'plugin_slug': 'composio-ai'});
+    expect(find.byType(PluginSetupPage), findsOneWidget);
+    expect(find.byKey(const ValueKey('composio_api_key_field')), findsOneWidget);
+    expect(find.text('Save API key'), findsOneWidget);
+  });
+
+  testWidgets('setup required badge shown for composio-ai without setup',
+      (WidgetTester tester) async {
+    mockCatalog(plugins: [catalogComposioAi]);
+    adapter.onGet(
+      PluginRepository.installedPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': [nestedInstalledComposioAi(id: 'install-composio-ai')],
+      }),
+    );
+
+    await tester.pumpWidget(scope(_materialApp(const ManagePluginsPage())));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Setup needed'), findsOneWidget);
+    expect(find.text('Ready'), findsNothing);
+    expect(find.text('API key required'), findsOneWidget);
   });
 
   testWidgets('install plugin with incomplete setup navigates to PluginSetupPage',

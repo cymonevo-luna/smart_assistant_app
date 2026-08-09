@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 /// Typography for the app, built on a single Google Font so every app on this
 /// template has a consistent, modern type scale.
 ///
-/// Swap [fontFamily] in one place to rebrand the whole app's text.
+/// Swap the Google Font call in one place to rebrand the whole app's text.
 abstract final class AppTypography {
-  /// Change this to use a different Google Font across the app.
+  /// Sci-fi HUD type scale (Rajdhani) for the Jarvis assistant experience.
   static TextTheme textTheme(Color textColor, Color mutedColor) {
-    final base = GoogleFonts.interTextTheme();
+    final base = GoogleFonts.rajdhaniTextTheme();
     return base
         .copyWith(
           displayLarge: base.displayLarge?.copyWith(fontWeight: FontWeight.w700),

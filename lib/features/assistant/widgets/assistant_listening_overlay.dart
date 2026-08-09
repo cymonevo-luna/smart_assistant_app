@@ -81,19 +81,23 @@ class _OverlayContent extends StatelessWidget {
         if (state.interactionState == AssistantInteractionState.listening)
           const _MicPulseIndicator()
         else if (state.interactionState == AssistantInteractionState.processing)
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: colors.primary,
+          _HudAccentRing(
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: colors.primary,
+              ),
             ),
           )
         else
-          Icon(
-            Icons.volume_up,
-            size: 48,
-            color: colors.primary,
+          _HudAccentRing(
+            child: Icon(
+              Icons.volume_up,
+              size: 48,
+              color: colors.primary,
+            ),
           ),
         const VGap(AppSpacing.lg),
         Text(
@@ -181,7 +185,7 @@ class _MicPulseIndicatorState extends State<_MicPulseIndicator>
       animation: _controller,
       builder: (context, child) {
         final scale = 1.0 + (_controller.value * 0.35);
-        final opacity = 0.45 * (1.0 - _controller.value);
+        final opacity = 0.55 * (1.0 - _controller.value);
 
         return SizedBox(
           width: 120,
@@ -196,7 +200,10 @@ class _MicPulseIndicatorState extends State<_MicPulseIndicator>
                   height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: colors.primary.withValues(alpha: opacity),
+                    border: Border.all(
+                      color: colors.secondary.withValues(alpha: opacity),
+                      width: 3,
+                    ),
                   ),
                 ),
               ),
@@ -205,25 +212,54 @@ class _MicPulseIndicatorState extends State<_MicPulseIndicator>
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: colors.primary,
+                  color: colors.surfaceContainerHighest,
+                  border: Border.all(
+                    color: colors.secondary.withValues(alpha: 0.45),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      spreadRadius: 2,
+                      color: colors.secondary.withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      spreadRadius: 1,
                     ),
                   ],
                 ),
                 child: Icon(
                   Icons.mic,
                   size: 36,
-                  color: colors.onPrimary,
+                  color: colors.primary,
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _HudAccentRing extends StatelessWidget {
+  const _HudAccentRing({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      width: 72,
+      height: 72,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colors.secondary.withValues(alpha: 0.45),
+          width: 2,
+        ),
+      ),
+      child: child,
     );
   }
 }

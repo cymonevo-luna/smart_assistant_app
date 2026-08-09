@@ -11,6 +11,7 @@ import '../../auth/auth_controller.dart';
 import '../models/installed_plugin.dart';
 import '../models/plugin_catalog_item.dart';
 import '../models/plugin_setup_status.dart';
+import '../models/plugin_setup_type.dart';
 import '../plugins_provider.dart';
 
 enum ManagePluginsTab { installed, available }
@@ -101,12 +102,19 @@ class _ManagePluginsPageState extends ConsumerState<ManagePluginsPage>
     }
   }
 
-  void _onSetupTap(InstalledPlugin plugin) {
-    if (plugin.setupStatus == PluginSetupStatus.completed) return;
+  void _navigateToSetup(InstalledPlugin plugin) {
+    final routeName = plugin.setupType == PluginSetupType.form
+        ? AppRoute.composioAiSetup.name
+        : AppRoute.pluginSetup.name;
     context.pushNamed(
-      AppRoute.pluginSetup.name,
+      routeName,
       pathParameters: {'id': plugin.id},
     );
+  }
+
+  void _onSetupTap(InstalledPlugin plugin) {
+    if (!plugin.needsSetup) return;
+    _navigateToSetup(plugin);
   }
 
   Future<void> _install(PluginCatalogItem item) async {
@@ -122,11 +130,8 @@ class _ManagePluginsPageState extends ConsumerState<ManagePluginsPage>
         SnackBar(content: Text(l10n.pluginInstalled(item.name))),
       );
       _tabController.animateTo(0);
-      if (installed.setupStatus != PluginSetupStatus.completed) {
-        context.pushNamed(
-          AppRoute.pluginSetup.name,
-          pathParameters: {'id': installed.id},
-        );
+      if (installed.needsSetup) {
+        _navigateToSetup(installed);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -213,9 +218,7 @@ class _InstalledTab extends StatelessWidget {
       ),
       data: (plugins) {
         final incompletePlugins = plugins
-            .where(
-              (plugin) => plugin.setupStatus != PluginSetupStatus.completed,
-            )
+            .where((plugin) => plugin.needsSetup)
             .toList();
 
         return Column(
@@ -354,11 +357,11 @@ class _InstalledTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final setupIncomplete = plugin.setupStatus != PluginSetupStatus.completed;
+    final needsSetup = plugin.needsSetup;
 
     return AppCard(
       child: InkWell(
-        onTap: setupIncomplete ? onSetupTap : null,
+        onTap: needsSetup ? onSetupTap : null,
         borderRadius: BorderRadius.circular(AppSpacing.md),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -375,14 +378,20 @@ class _InstalledTile extends StatelessWidget {
                         AppText.title(plugin.name),
                         const VGap(AppSpacing.xs),
                         AppText.body(plugin.description, muted: true),
+                        if (plugin.setupType == PluginSetupType.form) ...[
+                          const VGap(AppSpacing.xs),
+                          _SetupTypeIndicator(setupType: plugin.setupType!),
+                        ],
                       ],
                     ),
                   ),
-                  const HGap(AppSpacing.sm),
-                  _SetupStatusBadge(
-                    status: plugin.setupStatus,
-                    onTap: setupIncomplete ? onSetupTap : null,
-                  ),
+                  if (plugin.requiredSetup) ...[
+                    const HGap(AppSpacing.sm),
+                    _SetupStatusBadge(
+                      status: plugin.setupStatus,
+                      onTap: needsSetup ? onSetupTap : null,
+                    ),
+                  ],
                 ],
               ),
               const VGap(AppSpacing.md),
@@ -442,6 +451,11 @@ class _CatalogTile extends StatelessWidget {
             AppText.title(plugin.name),
             const VGap(AppSpacing.xs),
             AppText.body(plugin.description, muted: true),
+            if (plugin.requiredSetup &&
+                plugin.setupType == PluginSetupType.form) ...[
+              const VGap(AppSpacing.xs),
+              _SetupTypeIndicator(setupType: plugin.setupType!),
+            ],
             const VGap(AppSpacing.md),
             AppButton(
               l10n.install,
@@ -452,6 +466,38 @@ class _CatalogTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SetupTypeIndicator extends StatelessWidget {
+  const _SetupTypeIndicator({required this.setupType});
+
+  final PluginSetupType setupType;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tokens = context.tokens;
+    final label = switch (setupType) {
+      PluginSetupType.form => l10n.pluginSetupApiKeyRequired,
+      PluginSetupType.oauthGoogle => l10n.pluginSetupOAuthRequired,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: tokens.info.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppSpacing.lg),
+      ),
+      child: AppText.label(
+        label,
+        color: tokens.info,
+        weight: FontWeight.w600,
       ),
     );
   }

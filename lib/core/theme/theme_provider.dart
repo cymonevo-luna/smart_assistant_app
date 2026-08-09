@@ -20,7 +20,7 @@ class ThemeState {
 /// The fallback accent used when the user hasn't picked one yet. Override this
 /// per app to set its brand color:
 /// `ProviderScope(overrides: [defaultAccentProvider.overrideWithValue(AppAccent.purple)])`.
-final defaultAccentProvider = Provider<AppAccent>((ref) => AppAccent.blue);
+final defaultAccentProvider = Provider<AppAccent>((ref) => AppAccent.jarvis);
 
 /// Owns the active theme. Restores from [PreferencesService] on creation and
 /// persists every change, so selections survive restarts. Changes are applied
@@ -59,7 +59,7 @@ class ThemeNotifier extends Notifier<ThemeState> {
 
   static ThemeMode _modeFromName(String? name) => ThemeMode.values.firstWhere(
         (m) => m.name == name,
-        orElse: () => ThemeMode.system,
+        orElse: () => ThemeMode.dark,
       );
 }
 

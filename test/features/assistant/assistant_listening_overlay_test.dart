@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -12,21 +11,11 @@ import 'package:smart_assistant_app/features/assistant/assistant_controller.dart
 import 'package:smart_assistant_app/features/assistant/data/assistant_repository.dart';
 import 'package:smart_assistant_app/features/assistant/widgets/assistant_listening_overlay.dart';
 import 'package:smart_assistant_app/features/assistant/widgets/assistant_listening_overlay_host.dart';
-import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
+import '../../helpers/assistant_theme_harness.dart';
 import '../../helpers/auth_harness.dart';
 
-Widget _materialApp(Widget home) {
-  return MaterialApp(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: home,
-  );
-}
+Widget _materialApp(Widget home) => jarvisThemedApp(home);
 
 void main() {
   group('AssistantListeningOverlay', () {
@@ -52,6 +41,10 @@ void main() {
       expect(find.byKey(const ValueKey('assistant_listening_mic_animation')),
           findsOneWidget);
       expect(find.textContaining('hello'), findsOneWidget);
+
+      final micIcon = tester.widget<Icon>(find.byIcon(Icons.mic));
+      final theme = jarvisDarkTheme;
+      expect(micIcon.color, theme.colorScheme.primary);
     });
 
     testWidgets('processing state renders spinner and Thinking text',

@@ -317,8 +317,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pluginSetup => 'Plugin Setup';
 
   @override
+  String get pluginOAuthSetupInstructions =>
+      'Connect your Google account so this plugin can access your calendar and related services.';
+
+  @override
   String get pluginSetupInstructions =>
       'Connect your Google account so this plugin can access your calendar and related services.';
+
+  @override
+  String get pluginFormSetupInstructions =>
+      'Paste your API key from your Composio dashboard. Connected apps are discovered automatically.';
+
+  @override
+  String get pluginSetupApiKeyRequired => 'API key required';
+
+  @override
+  String get pluginSetupOAuthRequired => 'Account connection required';
+
+  @override
+  String get composioApiKeyLabel => 'Composio API key';
+
+  @override
+  String get composioApiKeyRequired => 'API key is required';
+
+  @override
+  String get composioConnectedApps => 'Connected apps';
+
+  @override
+  String get composioNoConnectedApps =>
+      'No apps connected yet. Connect apps in your Composio dashboard to use them here.';
+
+  @override
+  String get composioConnectApps => 'Connect apps in Composio';
+
+  @override
+  String get composioDashboardUrl => 'https://app.composio.dev';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get saveApiKey => 'Save API key';
 
   @override
   String get connectGoogleAccount => 'Connect Google Account';

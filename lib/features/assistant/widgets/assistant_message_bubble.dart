@@ -103,6 +103,11 @@ class AssistantMessageBubble extends StatelessWidget {
             decoration: BoxDecoration(
               color: background,
               borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: isUser
+                  ? null
+                  : Border.all(
+                      color: colors.secondary.withValues(alpha: 0.4),
+                    ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
