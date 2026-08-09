@@ -68,16 +68,8 @@ class AssistantMessageBubble extends StatelessWidget {
     }
   }
 
-  Future<void> _onManagePluginsTap(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    try {
-      await context.pushNamed(AppRoute.managePlugins.name);
-    } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.pluginActionFailed)),
-      );
-    }
+  void _onManagePluginsTap(BuildContext context) {
+    context.goNamed(AppRoute.managePlugins.name);
   }
 
   @override

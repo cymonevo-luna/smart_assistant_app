@@ -106,6 +106,24 @@ void main() {
     );
   }
 
+  testWidgets('plugin store redirect opens available tab', (tester) async {
+    mockCatalog(plugins: [catalogGoogleCalendarMeet]);
+    mockInstalledEmpty();
+
+    appRouter.go(AppRoute.pluginStore.path);
+
+    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpAndSettle();
+
+    expect(appRouter.routeInformationProvider.value.uri.path, '/plugins');
+    expect(
+      appRouter.routeInformationProvider.value.uri.queryParameters['tab'],
+      'available',
+    );
+    expect(find.text('Google Calendar Meet'), findsOneWidget);
+    expect(find.text('Install'), findsOneWidget);
+  });
+
   testWidgets('catalog page lists plugins', (WidgetTester tester) async {
     mockCatalog(plugins: [catalogGoogleCalendarMeet]);
     mockInstalledEmpty();

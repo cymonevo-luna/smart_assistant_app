@@ -13,7 +13,9 @@ import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/core/storage/secure_storage_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
+import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
 import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
+import 'package:smart_assistant_app/shared/widgets/main_scaffold.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_action_reason.dart';
@@ -54,6 +56,77 @@ AssistantAction _setupIncompleteAction({String installId = 'test-id'}) {
       'install_id': installId,
       'plugin_slug': 'google-calendar',
     },
+  );
+}
+
+AssistantAction _pluginDisabledAction() {
+  return AssistantAction(
+    pluginSlug: 'weather',
+    payload: {
+      'reason': AssistantActionReason.pluginDisabled,
+      'plugin_slug': 'weather',
+    },
+  );
+}
+
+GoRouter _shellRouterWithAssistantBubble() {
+  return GoRouter(
+    initialLocation: AppRoute.assistant.path,
+    routes: [
+      StatefulShellRoute(
+        builder: (context, state, navigationShell) =>
+            MainScaffold(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            AnimatedBranchContainer(
+          currentIndex: navigationShell.currentIndex,
+          children: children,
+        ),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoute.assistant.path,
+                name: AppRoute.assistant.name,
+                builder: (context, state) => Scaffold(
+                  body: AssistantMessageBubble(
+                    text: 'That plugin is turned off.',
+                    isUser: false,
+                    action: _pluginDisabledAction(),
+                    showActionCta: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoute.managePlugins.path,
+                name: AppRoute.managePlugins.name,
+                builder: (context, state) {
+                  final tab = state.uri.queryParameters['tab'];
+                  final initialTab = tab == 'available'
+                      ? ManagePluginsTab.available
+                      : ManagePluginsTab.installed;
+                  return ManagePluginsPage(initialTab: initialTab);
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoute.profile.path,
+                name: AppRoute.profile.name,
+                builder: (context, state) => const Scaffold(
+                  body: Center(child: Text('Profile')),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
   );
 }
 
@@ -201,5 +274,52 @@ void main() {
 
     expect(router.state.uri.path, '/plugins/test-id/setup');
     expect(find.byType(PluginSetupPage), findsOneWidget);
+  });
+
+  testWidgets('Manage plugins navigates to plugins tab', (tester) async {
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
+    adapter.onGet(
+      PluginRepository.installedPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+      }),
+    );
+
+    final router = _shellRouterWithAssistantBubble();
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      scope(
+        MaterialApp.router(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Manage plugins'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('assistant_manage_plugins_button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(router.state.uri.path, '/plugins');
+    expect(find.byType(ManagePluginsPage), findsOneWidget);
+    expect(find.text('Manage Plugins'), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
   });
 }
