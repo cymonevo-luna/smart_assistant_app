@@ -166,6 +166,8 @@
   "pluginsSetupIncompleteBanner": "Some plugins need setup before they can be used.",
   "assistantCompleteSetup": "Complete setup",
   "assistantManagePlugins": "Manage plugins",
+  "assistantConfirmYes": "Yes",
+  "assistantConfirmNo": "No",
   "openInBrowser": "Open in browser",
   "reminderNotificationsTitle": "Reminder notifications",
   "reminderNotificationsDescription": "Reminder notifications are enabled when the Reminder plugin is installed. The app syncs reminders from your account and shows local alerts at the scheduled time.",

@@ -6,6 +6,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../assistant_message_support.dart';
 import '../models/assistant_action_reason.dart';
 import '../models/assistant_reply.dart';
 
@@ -42,6 +43,8 @@ class AssistantMessageBubble extends StatelessWidget {
     this.replyType,
     this.action,
     this.showActionCta = false,
+    this.onConfirm,
+    this.onDeny,
   });
 
   final String text;
@@ -49,15 +52,18 @@ class AssistantMessageBubble extends StatelessWidget {
   final AssistantReplyType? replyType;
   final AssistantAction? action;
   final bool showActionCta;
+  final VoidCallback? onConfirm;
+  final VoidCallback? onDeny;
 
   Future<void> _onCompleteSetupTap(BuildContext context) async {
     final installId = action?.installId;
-    if (installId == null) return;
+    if (installId == null || action == null) return;
 
     final l10n = AppLocalizations.of(context);
+    final route = setupRouteForAction(action!);
     try {
       await context.pushNamed(
-        AppRoute.pluginSetup.name,
+        route.name,
         pathParameters: {'id': installId},
       );
     } catch (_) {
@@ -87,10 +93,19 @@ class AssistantMessageBubble extends StatelessWidget {
     final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
     final background = isUser ? colors.primary : colors.surfaceContainerHighest;
     final foreground = isUser ? colors.onPrimary : colors.onSurface;
+    final displayText = assistantReplyDisplayText(text: text, action: action);
     final cta = resolveAssistantMessageCta(
       action: action,
       showActionCta: showActionCta,
     );
+    final badge = shouldShowPluginBadge(replyType: replyType, action: action)
+        ? pluginBadgeLabel(action)
+        : null;
+    final showConfirmationActions = showActionCta &&
+        !isUser &&
+        replyType == AssistantReplyType.confirmation &&
+        onConfirm != null &&
+        onDeny != null;
 
     return Align(
       alignment: alignment,
@@ -99,7 +114,7 @@ class AssistantMessageBubble extends StatelessWidget {
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
-            key: ValueKey('assistant_bubble_${isUser ? 'user' : 'assistant'}_$text'),
+            key: ValueKey('assistant_bubble_${isUser ? 'user' : 'assistant'}_$displayText'),
             margin: const EdgeInsets.only(bottom: AppSpacing.sm),
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -124,8 +139,26 @@ class AssistantMessageBubble extends StatelessWidget {
                       color: foreground.withValues(alpha: 0.8),
                     ),
                   ),
+                if (badge != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Chip(
+                      key: const ValueKey('assistant_plugin_badge'),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      label: Text(
+                        badge,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: foreground.withValues(alpha: 0.9),
+                            ),
+                      ),
+                      backgroundColor: foreground.withValues(alpha: 0.08),
+                      side: BorderSide(color: foreground.withValues(alpha: 0.2)),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
                 Text(
-                  text,
+                  displayText,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: foreground,
                       ),
@@ -133,6 +166,26 @@ class AssistantMessageBubble extends StatelessWidget {
               ],
             ),
           ),
+          if (showConfirmationActions)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FilledButton(
+                    key: const ValueKey('assistant_confirm_yes_button'),
+                    onPressed: onConfirm,
+                    child: Text(l10n.assistantConfirmYes),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  OutlinedButton(
+                    key: const ValueKey('assistant_confirm_no_button'),
+                    onPressed: onDeny,
+                    child: Text(l10n.assistantConfirmNo),
+                  ),
+                ],
+              ),
+            ),
           if (cta == AssistantMessageCta.completeSetup)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),

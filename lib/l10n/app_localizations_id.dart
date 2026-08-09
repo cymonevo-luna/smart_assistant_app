@@ -386,6 +386,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get assistantManagePlugins => 'Kelola plugin';
 
   @override
+  String get assistantConfirmYes => 'Ya';
+
+  @override
+  String get assistantConfirmNo => 'Tidak';
+
+  @override
   String get openInBrowser => 'Buka di browser';
 
   @override

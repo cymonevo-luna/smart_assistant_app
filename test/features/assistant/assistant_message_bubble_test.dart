@@ -84,7 +84,10 @@ void main() {
     );
   }
 
-  void mockInstalledForTestId() {
+  void mockInstalledForTestId({
+    String slug = 'google-calendar',
+    String? setupType,
+  }) {
     adapter.onGet(
       PluginRepository.catalogPath,
       (server) => server.reply(200, {
@@ -100,8 +103,9 @@ void main() {
         'data': [
           nestedInstalledPlugin(
             id: 'test-id',
-            slug: 'google-calendar',
-            name: 'Google Calendar',
+            slug: slug,
+            name: slug == 'composio-ai' ? 'Composio AI' : 'Google Calendar',
+            setupType: setupType,
           ),
         ],
       }),
@@ -150,6 +154,68 @@ void main() {
       find.byKey(const ValueKey('assistant_complete_setup_button')),
       findsNothing,
     );
+  });
+
+  testWidgets('Complete setup navigates to composio form setup for composio-ai',
+      (tester) async {
+    mockInstalledForTestId(
+      slug: 'composio-ai',
+      setupType: 'form',
+    );
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => Scaffold(
+            body: AssistantMessageBubble(
+              text: 'Please connect Composio.',
+              isUser: false,
+              action: AssistantAction(
+                pluginSlug: 'composio-ai',
+                payload: {
+                  'reason': AssistantActionReason.setupIncomplete,
+                  'install_id': 'test-id',
+                  'plugin_slug': 'composio-ai',
+                },
+              ),
+              showActionCta: true,
+            ),
+          ),
+        ),
+        GoRoute(
+          path: AppRoute.composioAiSetup.path,
+          name: AppRoute.composioAiSetup.name,
+          builder: (context, state) => PluginSetupPage(
+            pluginId: state.pathParameters['id']!,
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      scope(
+        MaterialApp.router(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('assistant_complete_setup_button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(router.state.uri.path, '/plugins/test-id/composio-setup');
+    expect(find.byType(PluginSetupPage), findsOneWidget);
   });
 
   testWidgets('Complete setup navigates to plugin setup page', (tester) async {

@@ -806,6 +806,18 @@ abstract class AppLocalizations {
   /// **'Manage plugins'**
   String get assistantManagePlugins;
 
+  /// No description provided for @assistantConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get assistantConfirmYes;
+
+  /// No description provided for @assistantConfirmNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get assistantConfirmNo;
+
   /// No description provided for @openInBrowser.
   ///
   /// In en, this message translates to:
