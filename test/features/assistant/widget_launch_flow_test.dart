@@ -353,6 +353,83 @@ void main() {
         findsNothing);
   });
 
+  testWidgets('cancel during follow-up stops listening and dismisses overlay',
+      (tester) async {
+    adapter.onPost(
+      '/api/v1/assistant/sessions/sess-1/messages',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'reply': {
+            'type': 'follow_up',
+            'text': "What is Janet's email address?",
+          },
+          'session_status': 'active',
+        },
+      }),
+      data: {
+        'text': 'schedule meeting',
+        'source': 'button',
+      },
+    );
+
+    final container = await pumpHarness(tester);
+
+    fireWidgetLaunch();
+    await tester.pump();
+
+    recognizer.emitFinal('schedule meeting');
+    await tester.pump();
+
+    // Follow-up TTS completes synchronously in the fake engine; pump until
+    // auto-listen resumes (avoid pumpAndSettle — mic pulse animates forever).
+    for (var i = 0; i < 50; i++) {
+      if (recognizer.listening &&
+          container.read(assistantControllerProvider).interactionState ==
+              AssistantInteractionState.listening) {
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    expect(recognizer.listening, isTrue);
+    expect(
+      container.read(assistantListeningOverlayControllerProvider),
+      isTrue,
+    );
+    expect(find.byKey(const ValueKey('assistant_listening_overlay')),
+        findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('assistant_listening_overlay_cancel')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(recognizer.listening, isFalse);
+    expect(recognizer.stopCallCount, greaterThanOrEqualTo(1));
+    expect(
+      container.read(assistantListeningOverlayControllerProvider),
+      isFalse,
+    );
+    expect(find.byKey(const ValueKey('assistant_listening_overlay')),
+        findsNothing);
+    expect(
+      container.read(assistantControllerProvider).interactionState,
+      AssistantInteractionState.idle,
+    );
+
+    final postMatchers = adapter.history.where(
+      (h) =>
+          h.request.method?.name == 'POST' &&
+          '${h.request.route}'.contains('/messages'),
+    );
+    expect(postMatchers, hasLength(1));
+    expect(postMatchers.first.request.data, {
+      'text': 'schedule meeting',
+      'source': 'button',
+    });
+  });
+
   testWidgets('cancel aborts without API call', (tester) async {
     final container = await pumpHarness(tester);
 
