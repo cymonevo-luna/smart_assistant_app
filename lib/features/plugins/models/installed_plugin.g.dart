@@ -17,6 +17,8 @@ _InstalledPlugin _$InstalledPluginFromJson(Map<String, dynamic> json) =>
         _$PluginSetupStatusEnumMap,
         json['setup_status'],
       ),
+      requiredSetup: json['required_setup'] as bool? ?? false,
+      setupType: _setupTypeFromJson(json['setup_type']),
     );
 
 Map<String, dynamic> _$InstalledPluginToJson(_InstalledPlugin instance) =>
@@ -27,6 +29,8 @@ Map<String, dynamic> _$InstalledPluginToJson(_InstalledPlugin instance) =>
       'description': instance.description,
       'enabled': instance.enabled,
       'setup_status': _$PluginSetupStatusEnumMap[instance.setupStatus]!,
+      'required_setup': instance.requiredSetup,
+      'setup_type': _setupTypeToJson(instance.setupType),
     };
 
 const _$PluginSetupStatusEnumMap = {

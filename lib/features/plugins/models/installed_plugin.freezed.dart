@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InstalledPlugin {
 
- String get id; String get slug; String get name; String get description; bool get enabled;@JsonKey(name: 'setup_status') PluginSetupStatus get setupStatus;
+ String get id; String get slug; String get name; String get description; bool get enabled;@JsonKey(name: 'setup_status') PluginSetupStatus get setupStatus;@JsonKey(name: 'required_setup') bool get requiredSetup;@JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson) PluginSetupType? get setupType;
 /// Create a copy of InstalledPlugin
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $InstalledPluginCopyWith<InstalledPlugin> get copyWith => _$InstalledPluginCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InstalledPlugin&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.setupStatus, setupStatus) || other.setupStatus == setupStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InstalledPlugin&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.setupStatus, setupStatus) || other.setupStatus == setupStatus)&&(identical(other.requiredSetup, requiredSetup) || other.requiredSetup == requiredSetup)&&(identical(other.setupType, setupType) || other.setupType == setupType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,enabled,setupStatus);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,enabled,setupStatus,requiredSetup,setupType);
 
 @override
 String toString() {
-  return 'InstalledPlugin(id: $id, slug: $slug, name: $name, description: $description, enabled: $enabled, setupStatus: $setupStatus)';
+  return 'InstalledPlugin(id: $id, slug: $slug, name: $name, description: $description, enabled: $enabled, setupStatus: $setupStatus, requiredSetup: $requiredSetup, setupType: $setupType)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $InstalledPluginCopyWith<$Res>  {
   factory $InstalledPluginCopyWith(InstalledPlugin value, $Res Function(InstalledPlugin) _then) = _$InstalledPluginCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String description, bool enabled,@JsonKey(name: 'setup_status') PluginSetupStatus setupStatus
+ String id, String slug, String name, String description, bool enabled,@JsonKey(name: 'setup_status') PluginSetupStatus setupStatus,@JsonKey(name: 'required_setup') bool requiredSetup,@JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson) PluginSetupType? setupType
 });
 
 
@@ -65,7 +65,7 @@ class _$InstalledPluginCopyWithImpl<$Res>
 
 /// Create a copy of InstalledPlugin
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = null,Object? enabled = null,Object? setupStatus = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = null,Object? enabled = null,Object? setupStatus = null,Object? requiredSetup = null,Object? setupType = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,9 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,setupStatus: null == setupStatus ? _self.setupStatus : setupStatus // ignore: cast_nullable_to_non_nullable
-as PluginSetupStatus,
+as PluginSetupStatus,requiredSetup: null == requiredSetup ? _self.requiredSetup : requiredSetup // ignore: cast_nullable_to_non_nullable
+as bool,setupType: freezed == setupType ? _self.setupType : setupType // ignore: cast_nullable_to_non_nullable
+as PluginSetupType?,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus, @JsonKey(name: 'required_setup')  bool requiredSetup, @JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson)  PluginSetupType? setupType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InstalledPlugin() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus,_that.requiredSetup,_that.setupType);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus, @JsonKey(name: 'required_setup')  bool requiredSetup, @JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson)  PluginSetupType? setupType)  $default,) {final _that = this;
 switch (_that) {
 case _InstalledPlugin():
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus,_that.requiredSetup,_that.setupType);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String description,  bool enabled, @JsonKey(name: 'setup_status')  PluginSetupStatus setupStatus, @JsonKey(name: 'required_setup')  bool requiredSetup, @JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson)  PluginSetupType? setupType)?  $default,) {final _that = this;
 switch (_that) {
 case _InstalledPlugin() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_that.setupStatus,_that.requiredSetup,_that.setupType);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.enabled,_
 @JsonSerializable()
 
 class _InstalledPlugin implements InstalledPlugin {
-  const _InstalledPlugin({required this.id, required this.slug, required this.name, this.description = '', required this.enabled, @JsonKey(name: 'setup_status') required this.setupStatus});
+  const _InstalledPlugin({required this.id, required this.slug, required this.name, this.description = '', required this.enabled, @JsonKey(name: 'setup_status') required this.setupStatus, @JsonKey(name: 'required_setup') this.requiredSetup = false, @JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson) this.setupType});
   factory _InstalledPlugin.fromJson(Map<String, dynamic> json) => _$InstalledPluginFromJson(json);
 
 @override final  String id;
@@ -223,6 +225,8 @@ class _InstalledPlugin implements InstalledPlugin {
 @override@JsonKey() final  String description;
 @override final  bool enabled;
 @override@JsonKey(name: 'setup_status') final  PluginSetupStatus setupStatus;
+@override@JsonKey(name: 'required_setup') final  bool requiredSetup;
+@override@JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson) final  PluginSetupType? setupType;
 
 /// Create a copy of InstalledPlugin
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InstalledPlugin&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.setupStatus, setupStatus) || other.setupStatus == setupStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InstalledPlugin&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.setupStatus, setupStatus) || other.setupStatus == setupStatus)&&(identical(other.requiredSetup, requiredSetup) || other.requiredSetup == requiredSetup)&&(identical(other.setupType, setupType) || other.setupType == setupType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,enabled,setupStatus);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,enabled,setupStatus,requiredSetup,setupType);
 
 @override
 String toString() {
-  return 'InstalledPlugin(id: $id, slug: $slug, name: $name, description: $description, enabled: $enabled, setupStatus: $setupStatus)';
+  return 'InstalledPlugin(id: $id, slug: $slug, name: $name, description: $description, enabled: $enabled, setupStatus: $setupStatus, requiredSetup: $requiredSetup, setupType: $setupType)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$InstalledPluginCopyWith<$Res> implements $InstalledPlugin
   factory _$InstalledPluginCopyWith(_InstalledPlugin value, $Res Function(_InstalledPlugin) _then) = __$InstalledPluginCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String description, bool enabled,@JsonKey(name: 'setup_status') PluginSetupStatus setupStatus
+ String id, String slug, String name, String description, bool enabled,@JsonKey(name: 'setup_status') PluginSetupStatus setupStatus,@JsonKey(name: 'required_setup') bool requiredSetup,@JsonKey(name: 'setup_type', fromJson: _setupTypeFromJson, toJson: _setupTypeToJson) PluginSetupType? setupType
 });
 
 
@@ -274,7 +278,7 @@ class __$InstalledPluginCopyWithImpl<$Res>
 
 /// Create a copy of InstalledPlugin
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = null,Object? enabled = null,Object? setupStatus = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = null,Object? enabled = null,Object? setupStatus = null,Object? requiredSetup = null,Object? setupType = freezed,}) {
   return _then(_InstalledPlugin(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -282,7 +286,9 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,setupStatus: null == setupStatus ? _self.setupStatus : setupStatus // ignore: cast_nullable_to_non_nullable
-as PluginSetupStatus,
+as PluginSetupStatus,requiredSetup: null == requiredSetup ? _self.requiredSetup : requiredSetup // ignore: cast_nullable_to_non_nullable
+as bool,setupType: freezed == setupType ? _self.setupType : setupType // ignore: cast_nullable_to_non_nullable
+as PluginSetupType?,
   ));
 }
 

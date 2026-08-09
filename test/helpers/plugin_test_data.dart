@@ -1,3 +1,5 @@
+import 'package:smart_assistant_app/features/plugins/models/plugin_setup_type.dart';
+
 const catalogGoogleCalendarMeet = {
   'id': 'catalog-gcm',
   'slug': 'google-calendar-meet',
@@ -8,8 +10,31 @@ const catalogGoogleCalendarMeet = {
   'setup_type': 'oauth_google',
 };
 
+const catalogComposioAi = {
+  'id': 'catalog-composio-ai',
+  'slug': 'composio-ai',
+  'name': 'Composio AI',
+  'description':
+      'Connect external apps and automate workflows with Composio integrations',
+  'version': '1.0.0',
+  'required_setup': true,
+  'setup_type': 'form',
+};
+
+const catalogReminder = {
+  'id': 'catalog-reminder',
+  'slug': 'reminder',
+  'name': 'Reminder',
+  'description': 'Set time and location reminders from your assistant',
+  'version': '1.0.0',
+  'required_setup': false,
+  'setup_type': null,
+};
+
 const catalogPlugins = [
   catalogGoogleCalendarMeet,
+  catalogComposioAi,
+  catalogReminder,
   {
     'id': 'catalog-weather',
     'slug': 'weather',
@@ -50,6 +75,8 @@ Map<String, dynamic> nestedInstalledPlugin({
   bool enabled = true,
   String setupStatus = 'not_started',
   String? catalogId,
+  bool requiredSetup = true,
+  String? setupType = 'oauth_google',
 }) {
   return {
     'id': id,
@@ -59,8 +86,25 @@ Map<String, dynamic> nestedInstalledPlugin({
       'id': catalogId ?? 'catalog-$slug',
       'slug': slug,
       'name': name,
-      'required_setup': true,
-      'setup_type': 'oauth_google',
+      'required_setup': requiredSetup,
+      'setup_type': setupType,
     },
   };
+}
+
+Map<String, dynamic> nestedInstalledComposioAi({
+  required String id,
+  String setupStatus = 'not_started',
+  bool enabled = true,
+}) {
+  return nestedInstalledPlugin(
+    id: id,
+    slug: 'composio-ai',
+    name: 'Composio AI',
+    enabled: enabled,
+    setupStatus: setupStatus,
+    catalogId: 'catalog-composio-ai',
+    requiredSetup: true,
+    setupType: PluginSetupType.form.toApi(),
+  );
 }

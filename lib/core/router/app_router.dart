@@ -29,7 +29,8 @@ enum AppRoute {
   reminderNotifications('/settings/notifications'),
   managePlugins('/plugins'),
   pluginStore('/plugins/store'),
-  pluginSetup('/plugins/:id/setup');
+  pluginSetup('/plugins/:id/setup'),
+  composioAiSetup('/plugins/:id/composio-setup');
 
   const AppRoute(this.path);
   final String path;
@@ -140,6 +141,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoute.pluginSetup.path,
       name: AppRoute.pluginSetup.name,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => PluginSetupPage(
+        pluginId: state.pathParameters['id']!,
+      ),
+    ),
+    GoRoute(
+      path: AppRoute.composioAiSetup.path,
+      name: AppRoute.composioAiSetup.name,
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => PluginSetupPage(
         pluginId: state.pathParameters['id']!,
