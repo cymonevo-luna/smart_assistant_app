@@ -41,6 +41,18 @@ class AssistantUiState {
       interactionState == AssistantInteractionState.idle ||
       interactionState == AssistantInteractionState.listening;
 
+  /// Whether the latest assistant reply is waiting for another voice answer.
+  bool get expectsFollowUpInput {
+    for (var i = messages.length - 1; i >= 0; i--) {
+      final message = messages[i];
+      if (!message.isUser) {
+        return message.replyType == AssistantReplyType.followUp ||
+            message.replyType == AssistantReplyType.confirmation;
+      }
+    }
+    return false;
+  }
+
   AssistantUiState copyWith({
     AssistantInteractionState? interactionState,
     List<ChatMessage>? messages,
@@ -72,6 +84,9 @@ class AssistantController extends Notifier<AssistantUiState> {
   late final TextToSpeechService _tts;
   late final AssistantRepository _repo;
   late final ReminderRegistrationService _reminderRegistration;
+
+  /// Voice capture source reused across multi-turn follow-up chains.
+  String? _activeCaptureSource;
 
   @override
   AssistantUiState build() {
@@ -108,6 +123,7 @@ class AssistantController extends Notifier<AssistantUiState> {
 
     if (state.interactionState == AssistantInteractionState.listening) {
       await _stt.stopListening();
+      _activeCaptureSource = null;
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
         clearPartialTranscript: true,
@@ -125,6 +141,8 @@ class AssistantController extends Notifier<AssistantUiState> {
   Future<void> startManualCommandCapture({String source = 'button'}) async {
     if (state.interactionState != AssistantInteractionState.idle) return;
 
+    _activeCaptureSource = source;
+
     state = state.copyWith(
       interactionState: AssistantInteractionState.listening,
       clearPartialTranscript: true,
@@ -141,6 +159,7 @@ class AssistantController extends Notifier<AssistantUiState> {
     );
 
     if (!started) {
+      _activeCaptureSource = null;
       final message = _stt.error?.message ?? 'Could not start listening.';
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
@@ -158,6 +177,7 @@ class AssistantController extends Notifier<AssistantUiState> {
     await _stt.stopListening();
 
     if (text.isEmpty) {
+      _activeCaptureSource = null;
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
         clearPartialTranscript: true,
@@ -231,12 +251,14 @@ class AssistantController extends Notifier<AssistantUiState> {
         _onSpeechComplete();
       }
     } on ApiException catch (e) {
+      _activeCaptureSource = null;
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
         pendingRetryText: text,
         errorMessage: e.message,
       );
     } catch (_) {
+      _activeCaptureSource = null;
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
         pendingRetryText: text,
@@ -258,10 +280,64 @@ class AssistantController extends Notifier<AssistantUiState> {
     }
   }
 
+  bool _lastAssistantReplyExpectsInput() => state.expectsFollowUpInput;
+
   void _onSpeechComplete() {
-    if (state.interactionState == AssistantInteractionState.speaking) {
-      state = state.copyWith(interactionState: AssistantInteractionState.idle);
+    if (state.interactionState != AssistantInteractionState.speaking) return;
+
+    if (_lastAssistantReplyExpectsInput()) {
+      unawaited(_resumeListeningForFollowUp());
+      return;
     }
+
+    _activeCaptureSource = null;
+    state = state.copyWith(interactionState: AssistantInteractionState.idle);
+  }
+
+  Future<void> _resumeListeningForFollowUp() async {
+    state = state.copyWith(
+      interactionState: AssistantInteractionState.listening,
+      clearPartialTranscript: true,
+      clearErrorMessage: true,
+    );
+
+    final started = await _stt.startListening(
+      onPartial: (transcript) {
+        state = state.copyWith(partialTranscript: transcript);
+      },
+      onFinal: (transcript) {
+        _handleFollowUpTranscript(transcript);
+      },
+    );
+
+    if (!started) {
+      _activeCaptureSource = null;
+      final message = _stt.error?.message ?? 'Could not start listening.';
+      state = state.copyWith(
+        interactionState: AssistantInteractionState.idle,
+        clearPartialTranscript: true,
+        errorMessage: message,
+      );
+    }
+  }
+
+  Future<void> _handleFollowUpTranscript(String transcript) async {
+    final text = transcript.trim();
+    await _stt.stopListening();
+
+    if (text.isEmpty) {
+      _activeCaptureSource = null;
+      state = state.copyWith(
+        interactionState: AssistantInteractionState.idle,
+        clearPartialTranscript: true,
+      );
+      return;
+    }
+
+    await _sendUserMessage(
+      text,
+      source: _activeCaptureSource ?? 'button',
+    );
   }
 
   Future<void> retryLastMessage() async {
@@ -274,12 +350,15 @@ class AssistantController extends Notifier<AssistantUiState> {
   Future<void> sendWakeWordCommand(String text) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
+    _activeCaptureSource = 'wake_word';
     await _sendUserMessage(trimmed, source: 'wake_word');
   }
 
   /// Opens the assistant prompt and listens for a command after wake word only.
   Future<void> startWakeWordCommandCapture() async {
     if (state.interactionState != AssistantInteractionState.idle) return;
+
+    _activeCaptureSource = 'wake_word';
 
     state = state.copyWith(
       interactionState: AssistantInteractionState.listening,
@@ -297,6 +376,7 @@ class AssistantController extends Notifier<AssistantUiState> {
     );
 
     if (!started) {
+      _activeCaptureSource = null;
       final message = _stt.error?.message ?? 'Could not start listening.';
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
@@ -311,6 +391,7 @@ class AssistantController extends Notifier<AssistantUiState> {
     await _stt.stopListening();
 
     if (text.isEmpty) {
+      _activeCaptureSource = null;
       state = state.copyWith(
         interactionState: AssistantInteractionState.idle,
         clearPartialTranscript: true,
