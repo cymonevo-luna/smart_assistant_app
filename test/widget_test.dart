@@ -24,6 +24,8 @@ import 'package:smart_assistant_app/features/assistant/services/widget_launch_se
 import 'package:smart_assistant_app/features/assistant/services/text_to_speech_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/auth/login_page.dart';
+import 'package:smart_assistant_app/features/plugins/data/plugin_repository.dart';
+import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
 import 'package:smart_assistant_app/features/profile/profile_page.dart';
@@ -134,6 +136,7 @@ void main() {
       ..registerSingleton<PreferencesService>(prefs)
       ..registerSingleton<SecureStorageService>(secure)
       ..registerSingleton<ApiClient>(mocked.client)
+      ..registerSingleton<PluginRepository>(PluginRepository(mocked.client))
       ..registerSingleton<PluginAuthUrlLauncher>(DefaultPluginAuthUrlLauncher())
       ..registerSingleton<PluginSetupDeepLinkService>(PluginSetupDeepLinkService())
       ..registerSingleton<WidgetLaunchService>(WidgetLaunchService())
@@ -208,7 +211,8 @@ void main() {
     expect(find.byType(LoginPage), findsOneWidget);
   });
 
-  testWidgets('bottom nav has two tabs only', (WidgetTester tester) async {
+  testWidgets('bottom nav shows three tabs with puzzle icon',
+      (WidgetTester tester) async {
     secure.store[SecureKeys.authToken] = 'acc';
     secure.store[SecureKeys.userId] = 'u1';
     adapter.onGet(
@@ -228,7 +232,54 @@ void main() {
     await settlePastSplash(tester);
 
     expect(find.byType(AssistantPage), findsOneWidget);
-    expect(find.byType(NavigationDestination), findsNWidgets(2));
+    final navBar = find.byType(NavigationBar);
+    expect(find.descendant(of: navBar, matching: find.text('Assistant')), findsOneWidget);
+    expect(find.descendant(of: navBar, matching: find.text('Plugins')), findsOneWidget);
+    expect(find.descendant(of: navBar, matching: find.text('Profile')), findsOneWidget);
+    expect(find.byType(NavigationDestination), findsNWidgets(3));
+  });
+
+  testWidgets('Plugins tab navigates to Manage Plugins page',
+      (WidgetTester tester) async {
+    secure.store[SecureKeys.authToken] = 'acc';
+    secure.store[SecureKeys.userId] = 'u1';
+    adapter.onGet(
+      '/api/v1/users/u1',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {
+          'id': 'u1',
+          'email': 'alex@example.com',
+          'name': 'Alex Johnson',
+          'role': 'user',
+        },
+      }),
+    );
+    adapter.onGet(
+      PluginRepository.installedPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+      }),
+    );
+    adapter.onGet(
+      PluginRepository.catalogPath,
+      (server) => server.reply(200, {
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'meta': {'page': 1, 'per_page': 20, 'total': 0},
+      }),
+    );
+
+    await pumpApp(tester);
+    await settlePastSplash(tester);
+
+    await tester.tap(find.text('Plugins'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ManagePluginsPage), findsOneWidget);
+    expect(appRouter.routeInformationProvider.value.uri.path, '/plugins');
+    expect(find.byType(BackButton), findsNothing);
   });
 
   testWidgets('login routes to Assistant', (WidgetTester tester) async {

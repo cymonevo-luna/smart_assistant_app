@@ -35,6 +35,11 @@ class MainScaffold extends StatelessWidget {
             label: l10n.assistant,
           ),
           NavigationDestination(
+            icon: const Icon(Icons.extension_outlined),
+            selectedIcon: const Icon(Icons.extension),
+            label: l10n.plugins,
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.person_outline),
             selectedIcon: const Icon(Icons.person),
             label: l10n.profile,

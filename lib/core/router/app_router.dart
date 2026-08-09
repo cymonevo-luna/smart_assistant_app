@@ -98,6 +98,21 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: AppRoute.managePlugins.path,
+              name: AppRoute.managePlugins.name,
+              builder: (context, state) {
+                final tab = state.uri.queryParameters['tab'];
+                final initialTab = tab == 'available'
+                    ? ManagePluginsTab.available
+                    : ManagePluginsTab.installed;
+                return ManagePluginsPage(initialTab: initialTab);
+              },
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: AppRoute.profile.path,
               name: AppRoute.profile.name,
               builder: (context, state) => const ProfilePage(),
@@ -124,18 +139,6 @@ final GoRouter appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       redirect: (context, state) =>
           '${AppRoute.managePlugins.path}?tab=available',
-    ),
-    GoRoute(
-      path: AppRoute.managePlugins.path,
-      name: AppRoute.managePlugins.name,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final tab = state.uri.queryParameters['tab'];
-        final initialTab = tab == 'available'
-            ? ManagePluginsTab.available
-            : ManagePluginsTab.installed;
-        return ManagePluginsPage(initialTab: initialTab);
-      },
     ),
     GoRoute(
       path: AppRoute.pluginSetup.path,
