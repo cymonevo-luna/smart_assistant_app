@@ -27,9 +27,12 @@ RUN apt-get update \
         curl \
         git \
         libgtk-3-dev \
+        libnss3 \
+        libpulse0 \
         ninja-build \
         openjdk-17-jdk \
         pkg-config \
+        qemu-kvm \
         unzip \
         xz-utils \
     && rm -rf /var/lib/apt/lists/*
@@ -45,6 +48,8 @@ RUN curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/st
 
 RUN groupadd -g 1000 ubuntu || true \
     && useradd -m -u 1000 -g 1000 -s /bin/bash ubuntu || true \
+    && groupadd -r kvm 2>/dev/null || true \
+    && usermod -aG kvm ubuntu \
     && mkdir -p "${ANDROID_HOME}/cmdline-tools" \
     && curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS_VERSION}_latest.zip" \
         -o /tmp/cmdline-tools.zip \
@@ -60,8 +65,10 @@ RUN groupadd -g 1000 ubuntu || true \
         "build-tools;34.0.0" \
         "platforms;android-34" \
         "platforms;android-36" \
+        "system-images;android-34;google_apis;x86_64" \
     && test -x "${ANDROID_HOME}/platform-tools/adb" \
     && test -x "${ANDROID_HOME}/emulator/emulator" \
+    && test -d "${ANDROID_HOME}/system-images/android-34/google_apis/x86_64" \
     && chown -R ubuntu:ubuntu /opt/flutter "${ANDROID_HOME}"
 
 RUN cat > /etc/profile.d/luna-flutter-android.sh <<'EOF'
@@ -76,5 +83,14 @@ RUN chmod 644 /etc/profile.d/luna-flutter-android.sh \
 
 USER ubuntu
 WORKDIR /home/ubuntu
+
+# Luna agent device tests require this exact AVD (Nexus 5X, API 34). RAM/cores are
+# enforced at runtime by scripts/start-shared-emulator.sh (-memory 1536 -cores 1).
+RUN echo no | avdmanager create avd \
+        -n Luna_Test_Lite \
+        -k "system-images;android-34;google_apis;x86_64" \
+        -d "Nexus 5X" \
+    && test -d "$HOME/.android/avd/Luna_Test_Lite.avd" \
+    && "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fxq Luna_Test_Lite
 
 RUN flutter doctor -v
