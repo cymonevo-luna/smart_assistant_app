@@ -53,15 +53,30 @@ kvm_group_member() {
     || getent group kvm 2>/dev/null | grep -qE "(^|:)${USER}(,|$)"
 }
 
+kvm_device_exists() {
+  [ -e /dev/kvm ]
+}
+
+# Returns 0 when sg kvm can grant read/write access to /dev/kvm (stale-session workaround).
+sg_kvm_grants_access() {
+  kvm_device_exists || return 1
+  kvm_group_member || return 1
+  sg kvm -c 'test -r /dev/kvm && test -w /dev/kvm' 2>/dev/null
+}
+
 kvm_status_message() {
   if kvm_usable; then
     echo "KVM acceleration is available."
     return 0
   fi
   if kvm_group_member; then
+    if kvm_device_exists && ! sg_kvm_grants_access; then
+      echo "KVM acceleration is unavailable in this environment (/dev/kvm is not writable)."
+      echo "The shared emulator will use software rendering (slow)."
+      return 1
+    fi
     echo "KVM group membership is set but this shell cannot access /dev/kvm yet."
     echo "Log out and back in (or restart the user session) so the kvm group applies."
-    echo "start-shared-emulator.sh will use 'sg kvm' as a fallback until then."
     return 1
   fi
   echo "KVM is not writable for this user (/dev/kvm). Emulators will be slow."
@@ -70,14 +85,29 @@ kvm_status_message() {
   return 1
 }
 
-# Run a command with KVM device access when the user is in the kvm group but
-# the current shell session has not picked up the new group yet.
+emulator_gpu_flag() {
+  if kvm_usable; then
+    echo "-gpu auto"
+  else
+    echo "-gpu swiftshader_indirect"
+  fi
+}
+
+emulator_accel_flag() {
+  if kvm_usable; then
+    echo ""
+  else
+    echo "-accel off"
+  fi
+}
+
+# Run a command with KVM device access when sg kvm can actually grant /dev/kvm access.
 run_with_kvm() {
   if kvm_usable; then
     "$@"
     return $?
   fi
-  if kvm_group_member; then
+  if sg_kvm_grants_access; then
     sg kvm -c "$(printf '%q ' "$@")"
     return $?
   fi
