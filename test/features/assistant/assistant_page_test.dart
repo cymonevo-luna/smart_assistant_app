@@ -12,6 +12,7 @@ import 'package:smart_assistant_app/core/di/locator.dart';
 import 'package:smart_assistant_app/core/network/api_client.dart';
 import 'package:smart_assistant_app/core/storage/preferences_service.dart';
 import 'package:smart_assistant_app/features/assistant/active_listening_controller.dart';
+import 'package:smart_assistant_app/features/assistant/assistant_controller.dart';
 import 'package:smart_assistant_app/features/assistant/assistant_settings_provider.dart';
 import 'package:smart_assistant_app/features/assistant/data/assistant_repository.dart';
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
@@ -165,35 +166,49 @@ void main() {
     );
   });
 
-  Future<void> pumpAssistantPage(WidgetTester tester) async {
+  Future<ProviderContainer> pumpAssistantPage(WidgetTester tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        assistantSettingsProvider.overrideWith(
+          () => _FakeAssistantSettingsNotifier(
+            const AssistantSettings(
+              wakeWord: 'Jarvis',
+              activeListeningEnabled: false,
+            ),
+          ),
+        ),
+        activeListeningControllerProvider.overrideWith(
+          _IdleActiveListeningController.new,
+        ),
+        speechToTextServiceProvider.overrideWithValue(
+          SpeechToTextService(
+            recognizer: recognizer,
+            permissionClient: FakeMicrophonePermissionClient(),
+          ),
+        ),
+        textToSpeechServiceProvider.overrideWithValue(
+          TextToSpeechService(engine: ttsEngine),
+        ),
+      ],
+    );
+
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          assistantSettingsProvider.overrideWith(
-            () => _FakeAssistantSettingsNotifier(
-              const AssistantSettings(
-                wakeWord: 'Jarvis',
-                activeListeningEnabled: false,
-              ),
-            ),
-          ),
-          activeListeningControllerProvider.overrideWith(
-            _IdleActiveListeningController.new,
-          ),
-          speechToTextServiceProvider.overrideWithValue(
-            SpeechToTextService(
-              recognizer: recognizer,
-              permissionClient: FakeMicrophonePermissionClient(),
-            ),
-          ),
-          textToSpeechServiceProvider.overrideWithValue(
-            TextToSpeechService(engine: ttsEngine),
-          ),
-        ],
+      UncontrolledProviderScope(
+        container: container,
         child: _materialApp(const AssistantPage()),
       ),
     );
     await tester.pumpAndSettle();
+    return container;
+  }
+
+  Future<void> waitForRecognizerListening(WidgetTester tester) async {
+    for (var i = 0; i < 50; i++) {
+      if (recognizer.listening) return;
+      await Future<void>.delayed(Duration.zero);
+      await tester.pump();
+    }
+    fail('Timed out waiting for recognizer listening');
   }
 
   testWidgets('mic press triggers STT and API call', (tester) async {
@@ -283,7 +298,7 @@ void main() {
       },
     );
 
-    await pumpAssistantPage(tester);
+    final container = await pumpAssistantPage(tester);
 
     await tester.tap(find.byKey(const ValueKey('assistant_mic_button')));
     await tester.pump();
@@ -296,6 +311,16 @@ void main() {
       find.byKey(const ValueKey('assistant_mic_button')),
     );
     expect(mic.onTap, isNotNull);
+
+    await waitForRecognizerListening(tester);
+
+    expect(recognizer.listening, isTrue);
+    expect(find.byIcon(Icons.mic), findsOneWidget);
+    expect(find.byIcon(Icons.mic_none), findsNothing);
+    expect(
+      container.read(assistantControllerProvider).interactionState,
+      AssistantInteractionState.listening,
+    );
   });
 
   testWidgets('assistant reply with setup_incomplete shows Complete setup CTA',
