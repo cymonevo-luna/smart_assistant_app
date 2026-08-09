@@ -21,6 +21,7 @@ import 'package:smart_assistant_app/features/assistant/models/assistant_reply.da
 import 'package:smart_assistant_app/features/assistant/widgets/assistant_message_bubble.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
+import '../../helpers/assistant_theme_harness.dart';
 import '../../helpers/auth_harness.dart';
 import '../../helpers/plugin_test_data.dart';
 
@@ -34,17 +35,7 @@ class _AuthenticatedAuthController extends AuthController {
   AuthState build() => const AuthState(status: AuthStatus.authenticated);
 }
 
-Widget _materialApp(Widget home) {
-  return MaterialApp(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: home,
-  );
-}
+Widget _materialApp(Widget home) => jarvisThemedApp(home);
 
 AssistantAction _setupIncompleteAction({String installId = 'test-id'}) {
   return AssistantAction(
@@ -55,6 +46,13 @@ AssistantAction _setupIncompleteAction({String installId = 'test-id'}) {
       'plugin_slug': 'google-calendar',
     },
   );
+}
+
+BoxDecoration _bubbleDecoration(WidgetTester tester, String keySuffix) {
+  final container = tester.widget<Container>(
+    find.byKey(ValueKey('assistant_bubble_$keySuffix')),
+  );
+  return container.decoration! as BoxDecoration;
 }
 
 void main() {
@@ -107,6 +105,52 @@ void main() {
       }),
     );
   }
+
+  testWidgets('assistant bubble has gold HUD border and readable text',
+      (tester) async {
+    const message = 'Systems online.';
+    await tester.pumpWidget(
+      scope(
+        _materialApp(
+          const AssistantMessageBubble(
+            text: message,
+            isUser: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final decoration = _bubbleDecoration(tester, 'assistant_$message');
+    final border = decoration.border as Border?;
+    expect(border, isNotNull);
+    expect(
+      border!.top.color,
+      jarvisDarkTheme.colorScheme.secondary.withValues(alpha: 0.4),
+    );
+
+    final text = tester.widget<Text>(find.text(message));
+    expect(text.style?.color, jarvisDarkTheme.colorScheme.onSurface);
+  });
+
+  testWidgets('user bubble uses primary red background', (tester) async {
+    const message = 'Hello Jarvis';
+    await tester.pumpWidget(
+      scope(
+        _materialApp(
+          const AssistantMessageBubble(
+            text: message,
+            isUser: true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final decoration = _bubbleDecoration(tester, 'user_$message');
+    expect(decoration.color, jarvisDarkTheme.colorScheme.primary);
+    expect(decoration.border, isNull);
+  });
 
   testWidgets('shows Complete setup button for setup_incomplete payload',
       (tester) async {
@@ -182,6 +226,7 @@ void main() {
     await tester.pumpWidget(
       scope(
         MaterialApp.router(
+          theme: jarvisDarkTheme,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
