@@ -26,6 +26,7 @@ class AppTextField extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.enabled = true,
+    this.autocomplete = true,
   });
 
   final String? label;
@@ -40,6 +41,7 @@ class AppTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final bool enabled;
+  final bool autocomplete;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -67,6 +69,9 @@ class _AppTextFieldState extends State<AppTextField> {
           onChanged: widget.onChanged,
           onFieldSubmitted: widget.onSubmitted,
           enabled: widget.enabled,
+          autofillHints: widget.autocomplete ? null : const <String>[],
+          enableSuggestions: widget.autocomplete,
+          autocorrect: widget.autocomplete,
           decoration: InputDecoration(
             hintText: widget.hint,
             prefixIcon: widget.prefixIcon != null

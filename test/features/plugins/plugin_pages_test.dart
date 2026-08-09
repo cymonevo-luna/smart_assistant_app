@@ -231,6 +231,13 @@ void main() {
       }),
       data: {'plugin_slug': 'composio-ai'},
     );
+    adapter.onGet(
+      '${PluginRepository.setupPath(installId)}/status',
+      (server) => server.reply(200, {
+        'success': true,
+        'data': {'setup_status': 'not_started'},
+      }),
+    );
 
     appRouter.go('${AppRoute.managePlugins.path}?tab=available');
 
