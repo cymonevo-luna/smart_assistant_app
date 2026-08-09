@@ -326,7 +326,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pluginFormSetupInstructions =>
-      'Enter your Composio API key to connect external apps and automate workflows.';
+      'Paste your API key from your Composio dashboard. Connected apps are discovered automatically.';
 
   @override
   String get pluginSetupApiKeyRequired => 'API key required';
@@ -339,6 +339,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get composioApiKeyRequired => 'API key is required';
+
+  @override
+  String get composioConnectedApps => 'Connected apps';
+
+  @override
+  String get composioNoConnectedApps =>
+      'No apps connected yet. Connect apps in your Composio dashboard to use them here.';
+
+  @override
+  String get composioConnectApps => 'Connect apps in Composio';
+
+  @override
+  String get composioDashboardUrl => 'https://app.composio.dev';
+
+  @override
+  String get done => 'Done';
 
   @override
   String get saveApiKey => 'Save API key';

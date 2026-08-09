@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
@@ -49,6 +52,7 @@ class _PluginFormSetupPageState extends ConsumerState<PluginFormSetupPage> {
 
   @override
   void dispose() {
+    _apiKeyController.clear();
     _apiKeyController.dispose();
     super.dispose();
   }
@@ -67,25 +71,30 @@ class _PluginFormSetupPageState extends ConsumerState<PluginFormSetupPage> {
     final setupState = ref.watch(pluginFormSetupControllerProvider);
     final tokens = context.tokens;
 
-    if (setupState.phase == PluginFormSetupPhase.completed ||
-        widget.plugin.setupStatus == PluginSetupStatus.completed) {
-      return _StatusPanel(
-        icon: Icons.check_circle_outline,
-        color: tokens.success,
-        title: l10n.pluginSetupSuccess,
-        subtitle: widget.plugin.name,
-      );
+    if (setupState.phase == PluginFormSetupPhase.loading) {
+      if (setupState.isNetworkError) {
+        return _ErrorBody(
+          message: setupState.errorMessage ?? l10n.pluginLoadFailed,
+          onRetry: () =>
+              ref.read(pluginFormSetupControllerProvider.notifier).retry(),
+          retryLabel: l10n.retry,
+        );
+      }
+      return const Center(child: CircularProgressIndicator());
     }
 
-    if (setupState.phase == PluginFormSetupPhase.failed) {
-      return _StatusPanel(
-        icon: Icons.error_outline,
-        color: tokens.danger,
-        title: l10n.pluginSetupFailed,
-        subtitle: setupState.errorMessage,
-        actionLabel: l10n.pluginSetupRetry,
-        onAction: () =>
-            ref.read(pluginFormSetupControllerProvider.notifier).retry(),
+    if (setupState.phase == PluginFormSetupPhase.completed ||
+        widget.plugin.setupStatus == PluginSetupStatus.completed) {
+      return _CompletedBody(
+        pluginName: widget.plugin.name,
+        connectedToolkits: setupState.connectedToolkits,
+        onDone: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRoute.managePlugins.path);
+          }
+        },
       );
     }
 
@@ -117,6 +126,7 @@ class _PluginFormSetupPageState extends ConsumerState<PluginFormSetupPage> {
               controller: _apiKeyController,
               label: l10n.composioApiKeyLabel,
               obscure: true,
+              autocomplete: false,
               textInputAction: TextInputAction.done,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -126,6 +136,23 @@ class _PluginFormSetupPageState extends ConsumerState<PluginFormSetupPage> {
               },
               onSubmitted: (_) => _submit(),
             ),
+            if (setupState.errorMessage != null) ...[
+              const VGap(AppSpacing.sm),
+              AppText.body(
+                setupState.errorMessage!,
+                color: tokens.danger,
+              ),
+              if (setupState.isNetworkError) ...[
+                const VGap(AppSpacing.sm),
+                AppButton(
+                  l10n.retry,
+                  key: const ValueKey('composio_setup_retry'),
+                  variant: AppButtonVariant.secondary,
+                  expand: false,
+                  onPressed: _submit,
+                ),
+              ],
+            ],
             const VGap(AppSpacing.lg),
             AppButton(
               l10n.saveApiKey,
@@ -140,22 +167,89 @@ class _PluginFormSetupPageState extends ConsumerState<PluginFormSetupPage> {
   }
 }
 
-class _StatusPanel extends StatelessWidget {
-  const _StatusPanel({
-    required this.icon,
-    required this.color,
-    required this.title,
-    this.subtitle,
-    this.actionLabel,
-    this.onAction,
+class _CompletedBody extends StatelessWidget {
+  const _CompletedBody({
+    required this.pluginName,
+    required this.connectedToolkits,
+    required this.onDone,
   });
 
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String? subtitle;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final String pluginName;
+  final List<String> connectedToolkits;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tokens = context.tokens;
+
+    return Center(
+      child: Padding(
+        padding: AppSpacing.screenPadding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle_outline, size: 64, color: tokens.success),
+            const VGap(AppSpacing.md),
+            AppText.title(l10n.pluginSetupSuccess, align: TextAlign.center),
+            const VGap(AppSpacing.sm),
+            AppText.body(pluginName, muted: true, align: TextAlign.center),
+            const VGap(AppSpacing.lg),
+            if (connectedToolkits.isNotEmpty) ...[
+              AppText.label(l10n.composioConnectedApps),
+              const VGap(AppSpacing.sm),
+              Wrap(
+                key: const ValueKey('composio_connected_toolkits'),
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                alignment: WrapAlignment.center,
+                children: connectedToolkits
+                    .map(
+                      (toolkit) => Chip(
+                        label: Text(toolkit),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ] else ...[
+              AppText.body(
+                l10n.composioNoConnectedApps,
+                muted: true,
+                align: TextAlign.center,
+              ),
+              const VGap(AppSpacing.sm),
+              TextButton(
+                key: const ValueKey('composio_connect_apps_link'),
+                onPressed: () {
+                  final uri = Uri.parse(l10n.composioDashboardUrl);
+                  launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+                child: Text(l10n.composioConnectApps),
+              ),
+            ],
+            const VGap(AppSpacing.lg),
+            AppButton(
+              l10n.done,
+              key: const ValueKey('composio_setup_done'),
+              onPressed: onDone,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorBody extends StatelessWidget {
+  const _ErrorBody({
+    required this.message,
+    required this.onRetry,
+    required this.retryLabel,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+  final String retryLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -165,17 +259,9 @@ class _StatusPanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: color),
+            AppText.body(message, align: TextAlign.center),
             const VGap(AppSpacing.md),
-            AppText.title(title, align: TextAlign.center),
-            if (subtitle != null) ...[
-              const VGap(AppSpacing.sm),
-              AppText.body(subtitle!, muted: true, align: TextAlign.center),
-            ],
-            if (actionLabel != null && onAction != null) ...[
-              const VGap(AppSpacing.lg),
-              AppButton(actionLabel!, onPressed: onAction),
-            ],
+            AppButton(retryLabel, expand: false, onPressed: onRetry),
           ],
         ),
       ),

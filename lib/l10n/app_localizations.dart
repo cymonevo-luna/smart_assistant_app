@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @pluginFormSetupInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Enter your Composio API key to connect external apps and automate workflows.'**
+  /// **'Paste your API key from your Composio dashboard. Connected apps are discovered automatically.'**
   String get pluginFormSetupInstructions;
 
   /// No description provided for @pluginSetupApiKeyRequired.
@@ -721,6 +721,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'API key is required'**
   String get composioApiKeyRequired;
+
+  /// No description provided for @composioConnectedApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected apps'**
+  String get composioConnectedApps;
+
+  /// No description provided for @composioNoConnectedApps.
+  ///
+  /// In en, this message translates to:
+  /// **'No apps connected yet. Connect apps in your Composio dashboard to use them here.'**
+  String get composioNoConnectedApps;
+
+  /// No description provided for @composioConnectApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect apps in Composio'**
+  String get composioConnectApps;
+
+  /// No description provided for @composioDashboardUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'https://app.composio.dev'**
+  String get composioDashboardUrl;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
 
   /// No description provided for @saveApiKey.
   ///

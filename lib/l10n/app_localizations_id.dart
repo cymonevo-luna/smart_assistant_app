@@ -327,7 +327,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get pluginFormSetupInstructions =>
-      'Masukkan kunci API Composio untuk menghubungkan aplikasi eksternal dan otomatisasi alur kerja.';
+      'Tempel kunci API dari dasbor Composio Anda. Aplikasi terhubung akan ditemukan secara otomatis.';
 
   @override
   String get pluginSetupApiKeyRequired => 'Kunci API diperlukan';
@@ -340,6 +340,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get composioApiKeyRequired => 'Kunci API wajib diisi';
+
+  @override
+  String get composioConnectedApps => 'Aplikasi terhubung';
+
+  @override
+  String get composioNoConnectedApps =>
+      'Belum ada aplikasi terhubung. Hubungkan aplikasi di dasbor Composio untuk menggunakannya di sini.';
+
+  @override
+  String get composioConnectApps => 'Hubungkan aplikasi di Composio';
+
+  @override
+  String get composioDashboardUrl => 'https://app.composio.dev';
+
+  @override
+  String get done => 'Selesai';
 
   @override
   String get saveApiKey => 'Simpan kunci API';
