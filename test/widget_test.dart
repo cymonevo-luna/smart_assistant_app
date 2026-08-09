@@ -20,6 +20,7 @@ import 'package:smart_assistant_app/features/assistant/data/assistant_repository
 import 'package:smart_assistant_app/features/assistant/models/assistant_settings.dart';
 import 'package:smart_assistant_app/features/assistant/pages/assistant_page.dart';
 import 'package:smart_assistant_app/features/assistant/services/speech_to_text_service.dart';
+import 'package:smart_assistant_app/features/assistant/services/widget_launch_service.dart';
 import 'package:smart_assistant_app/features/assistant/services/text_to_speech_service.dart';
 import 'package:smart_assistant_app/features/auth/auth_controller.dart';
 import 'package:smart_assistant_app/features/auth/login_page.dart';
@@ -135,6 +136,7 @@ void main() {
       ..registerSingleton<ApiClient>(mocked.client)
       ..registerSingleton<PluginAuthUrlLauncher>(DefaultPluginAuthUrlLauncher())
       ..registerSingleton<PluginSetupDeepLinkService>(PluginSetupDeepLinkService())
+      ..registerSingleton<WidgetLaunchService>(WidgetLaunchService())
       ..registerSingleton<AssistantRepository>(
         AssistantRepository(mocked.client),
       );

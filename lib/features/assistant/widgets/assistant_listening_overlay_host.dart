@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/router/app_router.dart';
 import '../assistant_controller.dart';
 import 'assistant_listening_overlay.dart';
 
@@ -84,7 +85,8 @@ class _AssistantListeningOverlayHostState
   }
 
   void _attachOverlay() {
-    final overlay = Overlay.maybeOf(context);
+    final overlay = Overlay.maybeOf(context) ??
+        appRootNavigatorKey.currentState?.overlay;
     if (overlay != null) {
       _overlayController ??=
           ref.read(assistantListeningOverlayControllerProvider.notifier);
