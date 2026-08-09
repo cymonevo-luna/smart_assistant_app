@@ -13,8 +13,6 @@ import 'package:smart_assistant_app/features/auth/splash_page.dart';
 import 'package:smart_assistant_app/features/settings/settings_page.dart';
 import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
-import 'helpers/auth_harness.dart';
-
 Widget _materialApp(Widget home) {
   return MaterialApp(
     localizationsDelegates: const [

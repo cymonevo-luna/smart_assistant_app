@@ -101,16 +101,18 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                   avatar: Icon(
                     Icons.hearing,
                     size: 18,
-                    color: colors.primary,
+                    color: colors.secondary,
                   ),
                   label: Text(
                     l10n.listeningForWakeWord(activeListening.wakeWord),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colors.primary,
+                          color: colors.onSurface,
                         ),
                   ),
-                  backgroundColor: colors.primary.withValues(alpha: 0.1),
-                  side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
+                  backgroundColor: colors.primary.withValues(alpha: 0.12),
+                  side: BorderSide(
+                    color: colors.secondary.withValues(alpha: 0.45),
+                  ),
                 ),
               ),
             ),
@@ -221,7 +223,7 @@ class _MicButton extends StatelessWidget {
     final colors = context.colors;
 
     return Material(
-      color: isListening ? colors.error : colors.primary,
+      color: colors.primary,
       elevation: 6,
       shadowColor: colors.primary.withValues(alpha: 0.25),
       shape: const CircleBorder(),
@@ -229,6 +231,8 @@ class _MicButton extends StatelessWidget {
         key: const ValueKey('assistant_mic_button'),
         customBorder: const CircleBorder(),
         onTap: enabled ? onPressed : null,
+        splashColor: colors.secondary.withValues(alpha: 0.35),
+        highlightColor: colors.secondary.withValues(alpha: 0.2),
         child: SizedBox(
           width: 80,
           height: 80,

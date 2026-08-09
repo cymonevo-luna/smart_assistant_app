@@ -35,17 +35,40 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
 
   Future<List<InstalledPlugin>> _loadInstalledWithDescriptions() async {
     final installed = await _repo.listInstalled();
-    final catalog = await _catalogDescriptions();
-    return _mergeDescriptions(installed, catalog);
+    final catalogBySlug = await _catalogBySlug();
+    final withMetadata = _mergeCatalogMetadata(installed, catalogBySlug);
+    return _mergeDescriptions(
+      withMetadata,
+      {for (final entry in catalogBySlug.entries) entry.key: entry.value.description},
+    );
   }
 
-  Future<Map<String, String>> _catalogDescriptions() async {
+  Future<Map<String, PluginCatalogItem>> _catalogBySlug() async {
     try {
       final catalog = await _repo.listCatalog();
-      return {for (final item in catalog) item.slug: item.description};
+      return {for (final item in catalog) item.slug: item};
     } catch (_) {
       return {};
     }
+  }
+
+  List<InstalledPlugin> _mergeCatalogMetadata(
+    List<InstalledPlugin> installed,
+    Map<String, PluginCatalogItem> catalogBySlug,
+  ) {
+    return installed
+        .map((plugin) {
+          final catalogItem = catalogBySlug[plugin.slug];
+          if (catalogItem == null) return plugin;
+          return plugin.copyWith(
+            description: plugin.description.isNotEmpty
+                ? plugin.description
+                : catalogItem.description,
+            requiredSetup: plugin.requiredSetup || catalogItem.requiredSetup,
+            setupType: plugin.setupType ?? catalogItem.setupType,
+          );
+        })
+        .toList();
   }
 
   List<InstalledPlugin> _mergeDescriptions(
@@ -66,8 +89,8 @@ class InstalledPluginsNotifier extends AsyncNotifier<List<InstalledPlugin>> {
   InstalledPlugin _enrichInstalled(InstalledPlugin plugin) {
     final catalog = ref.read(pluginCatalogProvider).asData?.value;
     if (catalog == null) return plugin;
-    return _mergeDescriptions([plugin], {
-      for (final item in catalog) item.slug: item.description,
+    return _mergeCatalogMetadata([plugin], {
+      for (final item in catalog) item.slug: item,
     }).single;
   }
 

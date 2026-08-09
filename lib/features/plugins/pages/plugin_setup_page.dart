@@ -9,8 +9,10 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../models/installed_plugin.dart';
 import '../models/plugin_setup_status.dart';
+import '../models/plugin_setup_type.dart';
 import '../plugin_setup_provider.dart';
 import '../plugins_provider.dart';
+import 'plugin_form_setup_page.dart';
 
 class PluginSetupPage extends ConsumerStatefulWidget {
   const PluginSetupPage({super.key, required this.pluginId});
@@ -59,7 +61,11 @@ class _PluginSetupPageState extends ConsumerState<PluginSetupPage> {
             );
           }
 
-          return _SetupBody(
+          if (plugin.setupType == PluginSetupType.form) {
+            return PluginFormSetupPage(plugin: plugin);
+          }
+
+          return _OAuthSetupBody(
             plugin: plugin,
             setupState: setupState,
             onConnect: () => ref
@@ -77,8 +83,8 @@ class _PluginSetupPageState extends ConsumerState<PluginSetupPage> {
   }
 }
 
-class _SetupBody extends StatelessWidget {
-  const _SetupBody({
+class _OAuthSetupBody extends StatelessWidget {
+  const _OAuthSetupBody({
     required this.plugin,
     required this.setupState,
     required this.onConnect,
@@ -159,7 +165,7 @@ class _SetupBody extends StatelessWidget {
                   const VGap(AppSpacing.sm),
                   AppText.body(plugin.description, muted: true),
                   const VGap(AppSpacing.md),
-                  AppText.body(l10n.pluginSetupInstructions),
+                  AppText.body(l10n.pluginOAuthSetupInstructions),
                 ],
               ),
             ),

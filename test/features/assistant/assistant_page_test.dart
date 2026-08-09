@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -19,14 +18,25 @@ import 'package:smart_assistant_app/features/assistant/models/assistant_settings
 import 'package:smart_assistant_app/features/assistant/pages/assistant_page.dart';
 import 'package:smart_assistant_app/features/assistant/services/speech_to_text_service.dart';
 import 'package:smart_assistant_app/features/assistant/services/text_to_speech_service.dart';
-import 'package:smart_assistant_app/l10n/app_localizations.dart';
 
+import '../../helpers/assistant_theme_harness.dart';
 import '../../helpers/auth_harness.dart';
 
 class _IdleActiveListeningController extends ActiveListeningController {
   @override
   ActiveListeningState build() {
     return const ActiveListeningState(activeListeningEnabled: false);
+  }
+}
+
+class _MonitoringActiveListeningController extends ActiveListeningController {
+  @override
+  ActiveListeningState build() {
+    return const ActiveListeningState(
+      activeListeningEnabled: true,
+      mode: ActiveListeningMode.monitoring,
+      wakeWord: 'Jarvis',
+    );
   }
 }
 
@@ -117,17 +127,7 @@ class FakeTextToSpeechEngine implements TextToSpeechEngine {
   }
 }
 
-Widget _materialApp(Widget home) {
-  return MaterialApp(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: home,
-  );
-}
+Widget _materialApp(Widget home) => jarvisThemedApp(home);
 
 void main() {
   late DioAdapter adapter;
@@ -166,7 +166,10 @@ void main() {
     );
   });
 
-  Future<ProviderContainer> pumpAssistantPage(WidgetTester tester) async {
+  Future<ProviderContainer> pumpAssistantPage(
+    WidgetTester tester, {
+    ActiveListeningController Function()? activeListeningOverride,
+  }) async {
     final container = ProviderContainer(
       overrides: [
         assistantSettingsProvider.overrideWith(
@@ -178,7 +181,7 @@ void main() {
           ),
         ),
         activeListeningControllerProvider.overrideWith(
-          _IdleActiveListeningController.new,
+          activeListeningOverride ?? _IdleActiveListeningController.new,
         ),
         speechToTextServiceProvider.overrideWithValue(
           SpeechToTextService(
@@ -210,6 +213,45 @@ void main() {
     }
     fail('Timed out waiting for recognizer listening');
   }
+
+  testWidgets('uses Rajdhani HUD typography instead of Inter', (tester) async {
+    await pumpAssistantPage(tester);
+
+    final context = tester.element(find.byType(AssistantPage));
+    final fontFamily = Theme.of(context).textTheme.bodyLarge?.fontFamily;
+    expect(fontFamily, isNotNull);
+    expect(fontFamily!.toLowerCase(), isNot(contains('inter')));
+    expect(fontFamily.toLowerCase(), contains('rajdhani'));
+  });
+
+  testWidgets('active listening chip shows Jarvis with red/gold styling',
+      (tester) async {
+    await pumpAssistantPage(
+      tester,
+      activeListeningOverride: _MonitoringActiveListeningController.new,
+    );
+
+    expect(
+      find.byKey(const ValueKey('assistant_active_listening_chip')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Jarvis'), findsOneWidget);
+
+    final chip = tester.widget<Chip>(
+      find.byKey(const ValueKey('assistant_active_listening_chip')),
+    );
+    final avatarIcon = chip.avatar as Icon?;
+    expect(avatarIcon?.color, jarvisDarkTheme.colorScheme.secondary);
+    expect(
+      chip.backgroundColor,
+      jarvisDarkTheme.colorScheme.primary.withValues(alpha: 0.12),
+    );
+    final side = chip.side;
+    expect(
+      side?.color,
+      jarvisDarkTheme.colorScheme.secondary.withValues(alpha: 0.45),
+    );
+  });
 
   testWidgets('mic press triggers STT and API call', (tester) async {
     adapter.onPost(
