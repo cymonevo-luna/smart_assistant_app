@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -16,34 +15,9 @@ import 'package:smart_assistant_app/features/plugins/pages/manage_plugins_page.d
 import 'package:smart_assistant_app/features/plugins/pages/plugin_setup_page.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_auth_url_launcher.dart';
 import 'package:smart_assistant_app/features/plugins/services/plugin_setup_deep_link_service.dart';
-import 'package:smart_assistant_app/l10n/app_localizations.dart';
-
 import '../../helpers/auth_harness.dart';
+import '../../helpers/material_test_harness.dart';
 import '../../helpers/plugin_test_data.dart';
-
-Widget _materialApp(Widget home) {
-  return MaterialApp(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: home,
-  );
-}
-
-Widget _routerApp() {
-  return MaterialApp.router(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
-    routerConfig: appRouter,
-  );
-}
 
 class _RecordingUrlLauncher implements PluginAuthUrlLauncher {
   final List<String> urls = [];
@@ -112,7 +86,7 @@ void main() {
 
     appRouter.go(AppRoute.pluginStore.path);
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     expect(appRouter.routeInformationProvider.value.uri.path, '/plugins');
@@ -130,7 +104,7 @@ void main() {
 
     await tester.pumpWidget(
       scope(
-        _materialApp(
+        shaderSafeMaterialApp(home:
           const ManagePluginsPage(initialTab: ManagePluginsTab.available),
         ),
       ),
@@ -184,7 +158,7 @@ void main() {
 
     await tester.pumpWidget(
       scope(
-        _materialApp(
+        shaderSafeMaterialApp(home:
           const ManagePluginsPage(initialTab: ManagePluginsTab.available),
         ),
       ),
@@ -201,7 +175,7 @@ void main() {
     expect(postMatchers.last.request.data, {'plugin_slug': 'weather'});
 
     await tester.pumpWidget(
-      scope(_materialApp(const ManagePluginsPage())),
+      scope(shaderSafeMaterialApp(home:const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -215,7 +189,7 @@ void main() {
 
     await tester.pumpWidget(
       scope(
-        _materialApp(
+        shaderSafeMaterialApp(home:
           const ManagePluginsPage(initialTab: ManagePluginsTab.available),
         ),
       ),
@@ -259,7 +233,7 @@ void main() {
 
     appRouter.go('${AppRoute.managePlugins.path}?tab=available');
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Install'));
@@ -285,7 +259,7 @@ void main() {
       }),
     );
 
-    await tester.pumpWidget(scope(_materialApp(const ManagePluginsPage())));
+    await tester.pumpWidget(scope(shaderSafeMaterialApp(home:const ManagePluginsPage())));
     await tester.pumpAndSettle();
 
     expect(find.text('Setup needed'), findsOneWidget);
@@ -315,7 +289,7 @@ void main() {
 
     appRouter.go('${AppRoute.managePlugins.path}?tab=available');
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Install'));
@@ -373,7 +347,7 @@ void main() {
 
     appRouter.go('${AppRoute.managePlugins.path}?tab=available');
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Install'));
@@ -422,7 +396,7 @@ void main() {
 
     appRouter.go('${AppRoute.managePlugins.path}?tab=available');
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Install'));
@@ -448,7 +422,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const ManagePluginsPage())),
+      scope(shaderSafeMaterialApp(home:const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
@@ -490,7 +464,7 @@ void main() {
 
     appRouter.go(AppRoute.managePlugins.path);
 
-    await tester.pumpWidget(scope(_routerApp()));
+    await tester.pumpWidget(scope(shaderSafeRouterApp(routerConfig: appRouter)));
     await tester.pumpAndSettle();
 
     expect(find.text('Setup needed'), findsOneWidget);
@@ -529,7 +503,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      scope(_materialApp(const ManagePluginsPage())),
+      scope(shaderSafeMaterialApp(home:const ManagePluginsPage())),
     );
     await tester.pumpAndSettle();
 
