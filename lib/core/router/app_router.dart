@@ -53,8 +53,11 @@ final GoRouter appRouter = GoRouter(
       return AppRoute.managePlugins.path;
     }
     if (isWidgetListenUri(state.uri)) {
-      locator<WidgetLaunchService>().handleUri(state.uri);
-      return null;
+      final uri = state.uri;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        locator<WidgetLaunchService>().handleUri(uri);
+      });
+      return AppRoute.assistant.path;
     }
     return null;
   },
