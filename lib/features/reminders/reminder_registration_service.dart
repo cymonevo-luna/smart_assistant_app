@@ -63,6 +63,10 @@ class ReminderRegistrationService {
   Future<void> syncPendingFromApi() async {
     final reminders = await _reminderApiRepository.fetchPending();
     await _reminderRepository.syncFromApi(reminders);
+    final pending = await _reminderRepository.getAllPending();
+    if (pending.isNotEmpty) {
+      await _locationMonitorService.startMonitoring();
+    }
   }
 
   bool _isLocationReminderAction(AssistantAction action) {

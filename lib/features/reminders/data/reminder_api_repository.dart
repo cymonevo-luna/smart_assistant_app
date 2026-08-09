@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/location_reminder.dart';
 
 /// Fetches location reminders from the backend API.
@@ -15,6 +16,15 @@ class ReminderApiRepository {
       query: {'status': 'pending'},
       decoder: (raw) => _parseList(raw, LocationReminder.fromJson),
     );
+  }
+
+  /// Best-effort server sync when a reminder triggers locally.
+  Future<void> markTriggered(String id) async {
+    try {
+      await _api.patch<void>('/api/v1/reminders/$id/triggered');
+    } on ApiException {
+      // Ignore offline or transient API failures.
+    }
   }
 
   List<T> _parseList<T>(
