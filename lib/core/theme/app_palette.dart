@@ -46,7 +46,7 @@ abstract final class AppPalette {
   static const Color lightBorder = Color(0xFFE5E8EC);
 
   // Dark neutrals.
-  static const Color darkScaffold = Color(0xFF0F1115);
+  static const Color darkScaffold = Color(0xFF0A0E14);
   static const Color darkSurface = Color(0xFF181B21);
   static const Color darkTextPrimary = Color(0xFFF3F4F6);
   static const Color darkTextSecondary = Color(0xFF9CA3AF);
